@@ -14,8 +14,8 @@ title: 金数据开放平台
 
 - 让 AI 助手管理表单、查询和操作数据：查看 [MCP Server](/mcp/)
 - 通过程序读取、创建、修改表单和数据：查看 [API v1](/api_v1/)
-- 在表单新增或修改数据后推送到你的服务器：查看 [Webhook](/webhook/home/)
-- 在表单链接中传入渠道、用户 ID 等外部参数：查看 [URL 传参](/url_params/overview/)
+- 在表单新增或修改数据后推送到你的服务器：查看 [Webhook](/webhook/)
+- 在表单链接中传入渠道、用户 ID 等外部参数：查看 [URL 传参](/url_params/)
 - 将金数据表单嵌入网页、公众号、App 或小程序：查看 [表单嵌入文档](/embedded/overview/)
 
 如果你不确定该使用哪种能力，可以先查看 [场景案例](/best_practice/)。
