@@ -39,6 +39,18 @@ const sidebars: SidebarsConfig = {
                 'api_v1/endpoints/copy_form',
                 'api_v1/endpoints/update_form_theme',
                 'api_v1/endpoints/update_form_folder',
+                {
+                  type: 'category',
+                  label: '视图',
+                  items: [
+                    'api_v1/endpoints/get_form_views',
+                    'api_v1/endpoints/get_form_view',
+                    'api_v1/endpoints/create_form_view',
+                    'api_v1/endpoints/update_form_view',
+                    'api_v1/endpoints/delete_form_view',
+                    'api_v1/endpoints/get_form_view_entries',
+                  ],
+                },
               ],
             },
             {
