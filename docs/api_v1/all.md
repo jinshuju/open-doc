@@ -94,6 +94,14 @@ POST /api/v1/forms/FORM_TOKEN/entries
 
 [查看详情](/api_v1/endpoints/create_form_entry)
 
+### 上传附件
+
+```
+POST /api/v1/forms/FORM_TOKEN/entry_attachments
+```
+
+[查看详情](/api_v1/endpoints/create_entry_attachment)
+
 ### 获取表单单条数据
 
 ```
