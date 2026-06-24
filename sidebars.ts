@@ -67,6 +67,7 @@ const sidebars: SidebarsConfig = {
               items: [
                 'api_v1/endpoints/get_form_entries',
                 'api_v1/endpoints/create_form_entry',
+                'api_v1/endpoints/create_form_entries',
                 'api_v1/endpoints/create_entry_attachment',
                 'api_v1/endpoints/get_form_entry',
                 'api_v1/endpoints/update_form_entry',

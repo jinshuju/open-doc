@@ -94,6 +94,14 @@ POST /api/v1/forms/FORM_TOKEN/entries
 
 [查看详情](/api_v1/endpoints/create_form_entry)
 
+### 批量新增数据
+
+```
+POST /api/v1/forms/FORM_TOKEN/entries/batch
+```
+
+[查看详情](/api_v1/endpoints/create_form_entries)
+
 ### 上传附件
 
 ```
