@@ -1,30 +1,815 @@
 /**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
+ * 金数据开放平台 — 文档主题样式
+ *
+ * 这里的样式是全局的，覆盖 Docusaurus 默认的 Infima 变量。
+ * 结构：
+ *   1. 设计变量（颜色 / 字体 / 圆角 / 阴影）
+ *   2. 基础排版
+ *   3. 顶部导航
+ *   4. 侧边栏
+ *   5. 正文（面包屑、标题、列表、表格、代码、引用、提示）
+ *   6. 右侧目录与翻页
+ *   7. 页脚
+ *   8. 首页
+ *   9. 响应式与无障碍
  */
 
-/* You can override the default Infima variables here. */
+/* ==========================================================================
+   1. 设计变量
+   ========================================================================== */
+
 :root {
-  --ifm-color-primary: #ff5e5e;
-  --ifm-color-primary-dark: #f64242;
-  --ifm-color-primary-darker: #f53434;
-  --ifm-color-primary-darkest: #e01212;
-  --ifm-color-primary-light: #fd7373;
-  --ifm-color-primary-lighter: #ff8585;
-  --ifm-color-primary-lightest: #ffb0b0;
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  /* 品牌色：金数据珊瑚红，正文可读性优先 */
+  --ifm-color-primary: #e0483f;
+  --ifm-color-primary-dark: #cf3b32;
+  --ifm-color-primary-darker: #c3352d;
+  --ifm-color-primary-darkest: #a12a24;
+  --ifm-color-primary-light: #ea6259;
+  --ifm-color-primary-lighter: #f1746b;
+  --ifm-color-primary-lightest: #ffa9a2;
+
+  --gd-accent-soft: rgba(224, 72, 63, 0.08);
+  --gd-accent-softer: rgba(224, 72, 63, 0.045);
+
+  /* 中性色：偏暖的灰阶，与珊瑚红更协调 */
+  --gd-bg: #ffffff;
+  --gd-bg-subtle: #fbfaf9;
+  --gd-surface: #f4f3f1;
+  --gd-border: #e8e6e2;
+  --gd-border-strong: #d5d2cc;
+  --gd-ink: #1e1c1a;
+  --gd-ink-soft: #47443f;
+  --gd-ink-muted: #79756e;
+
+  --ifm-background-color: var(--gd-bg);
+  --ifm-background-surface-color: var(--gd-bg-subtle);
+  --ifm-font-color-base: var(--gd-ink-soft);
+  --ifm-font-color-secondary: var(--gd-ink-muted);
+  --ifm-heading-color: var(--gd-ink);
+  --ifm-hr-background-color: var(--gd-border);
+  --ifm-hr-margin-vertical: 2.5rem;
+  --ifm-toc-border-color: var(--gd-border);
+  --ifm-table-border-color: var(--gd-border);
+  --ifm-scrollbar-thumb-background-color: var(--gd-border-strong);
+  --ifm-scrollbar-thumb-hover-background-color: var(--gd-ink-muted);
+
+  /* 字体 */
+  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter,
+    'PingFang SC', 'HarmonyOS Sans SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    'Noto Sans SC', sans-serif;
+  --ifm-font-family-monospace: 'SF Mono', ui-monospace, SFMono-Regular,
+    'JetBrains Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  --ifm-font-size-base: 16px;
+  --ifm-line-height-base: 1.75;
+  --ifm-heading-font-weight: 650;
+  --ifm-heading-line-height: 1.35;
+  --ifm-h4-font-size: 1.0625rem;
+  --ifm-code-font-size: 87.5%;
+  --ifm-paragraph-margin-bottom: 1.125rem;
+  --ifm-list-left-padding: 1.25rem;
+  /* h1—h3 的字号在正文选择器上设置：infima 在 .markdown 标题元素上覆盖了这些变量 */
+
+  /* 圆角与阴影：克制的层次感，不用重投影 */
+  --ifm-global-radius: 0.625rem;
+  --gd-radius-sm: 0.375rem;
+  --gd-radius-lg: 0.875rem;
+  --ifm-global-shadow-lw: 0 1px 2px rgba(28, 26, 24, 0.05);
+  --ifm-global-shadow-md: 0 4px 16px -4px rgba(28, 26, 24, 0.1);
+
+  /* 链接 */
+  --ifm-link-hover-decoration: none;
+
+  /* 布局 */
+  --ifm-navbar-padding-horizontal: 1.5rem;
+  --ifm-navbar-shadow: none;
+  --doc-sidebar-width: 17.5rem;
+  --ifm-container-width-xl: 1440px;
+
+  /* 组件 */
+  --ifm-code-background: var(--gd-surface);
+  --ifm-code-border-radius: var(--gd-radius-sm);
+  --ifm-code-padding-horizontal: 0.35em;
+  --ifm-code-padding-vertical: 0.15em;
+  --ifm-pre-border-radius: var(--gd-radius-lg);
+  --ifm-pre-padding: 1.125rem 1.25rem;
+  --ifm-table-head-background: var(--gd-bg-subtle);
+  --ifm-table-head-font-weight: 600;
+  --ifm-table-cell-padding: 0.6875rem 1rem;
+  --ifm-table-stripe-background: transparent;
+  --ifm-blockquote-color: var(--gd-ink-soft);
+  --ifm-blockquote-border-color: var(--gd-border-strong);
+  --ifm-blockquote-padding-horizontal: 1.125rem;
+  --ifm-alert-border-radius: var(--gd-radius-lg);
+  --ifm-alert-border-left-width: 0;
+  --ifm-alert-border-width: 1px;
+  --ifm-alert-shadow: none;
+  --ifm-menu-color: var(--gd-ink-soft);
+  --ifm-menu-color-background-active: var(--gd-accent-soft);
+  --ifm-menu-color-background-hover: var(--gd-surface);
+  --ifm-toc-link-color: var(--gd-ink-muted);
+  --ifm-breadcrumb-item-background-active: transparent;
+  --ifm-breadcrumb-padding-horizontal: 0;
+  --ifm-breadcrumb-spacing: 0.25rem;
+  --ifm-breadcrumb-size-multiplier: 0.8;
+  --ifm-footer-background-color: var(--gd-bg-subtle);
+  --ifm-footer-color: var(--gd-ink-muted);
+  --ifm-footer-link-color: var(--gd-ink-soft);
+  --ifm-footer-title-color: var(--gd-ink);
+  --ifm-footer-padding-vertical: 3rem;
+
+  --docusaurus-highlighted-code-line-bg: rgba(224, 72, 63, 0.09);
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #ff7070;
-  --ifm-color-primary-dark: #ff4d4d;
-  --ifm-color-primary-darker: #ff3b3b;
-  --ifm-color-primary-darkest: #ff0a0a;
-  --ifm-color-primary-light: #ff9393;
-  --ifm-color-primary-lighter: #ffa5a5;
-  --ifm-color-primary-lightest: #ffd6d6;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --ifm-color-primary: #ff8078;
+  --ifm-color-primary-dark: #ff655b;
+  --ifm-color-primary-darker: #ff574c;
+  --ifm-color-primary-darkest: #f22d20;
+  --ifm-color-primary-light: #ff9b95;
+  --ifm-color-primary-lighter: #ffaaa5;
+  --ifm-color-primary-lightest: #ffd0cd;
+
+  --gd-accent-soft: rgba(255, 128, 120, 0.14);
+  --gd-accent-softer: rgba(255, 128, 120, 0.07);
+
+  --gd-bg: #101012;
+  --gd-bg-subtle: #17171b;
+  --gd-surface: #212127;
+  --gd-border: #2b2b32;
+  --gd-border-strong: #3d3d47;
+  --gd-ink: #f2f1ef;
+  --gd-ink-soft: #c9c7c3;
+  --gd-ink-muted: #918f8a;
+
+  --ifm-global-shadow-lw: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --ifm-global-shadow-md: 0 4px 16px -4px rgba(0, 0, 0, 0.55);
+
+  --docusaurus-highlighted-code-line-bg: rgba(255, 128, 120, 0.14);
+}
+
+/* ==========================================================================
+   2. 基础排版
+   ========================================================================== */
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-padding-top: calc(var(--ifm-navbar-height) + 1rem);
+  /* 现代浏览器走标准属性；老引擎回退到 infima 的 .thin-scrollbar（见上方 --ifm-scrollbar-* ） */
+  scrollbar-width: thin;
+  scrollbar-color: var(--gd-border-strong) transparent;
+}
+
+::selection {
+  background: var(--gd-accent-soft);
+}
+
+a {
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+a:hover {
+  color: var(--ifm-color-primary-dark);
+}
+
+[data-theme='dark'] a:hover {
+  color: var(--ifm-color-primary-light);
+}
+
+strong {
+  color: var(--gd-ink);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   3. 顶部导航
+   ========================================================================== */
+
+.navbar {
+  background: transparent;
+  border-bottom: 1px solid var(--gd-border);
+  padding-block: 0;
+}
+
+/*
+ * 毛玻璃背景放在伪元素上：直接给 .navbar 加 backdrop-filter 会让它成为
+ * fixed 定位的包含块，移动端抽屉（.navbar-sidebar）会被压成导航栏的高度。
+ */
+.navbar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--gd-bg) 80%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.navbar__inner {
+  max-width: var(--ifm-container-width-xl);
+  margin: 0 auto;
+}
+
+.navbar__brand {
+  margin-right: 1.75rem;
+}
+
+.navbar__title {
+  font-size: 0.9375rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--gd-ink);
+}
+
+.navbar__logo {
+  height: 1.5rem;
+  margin-right: 0.625rem;
+}
+
+.navbar__link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gd-ink-soft);
+}
+
+.navbar__link:hover,
+.navbar__link--active {
+  color: var(--gd-ink);
+}
+
+.navbar__link--active {
+  font-weight: 600;
+}
+
+.navbar__items--right > :last-child {
+  padding-right: 0;
+}
+
+/* 主题切换按钮 */
+.navbar .clean-btn {
+  border-radius: var(--gd-radius-sm);
+  color: var(--gd-ink-muted);
+}
+
+.navbar .clean-btn:hover {
+  background: var(--gd-surface);
+  color: var(--gd-ink);
+}
+
+.navbar-sidebar {
+  background: var(--gd-bg);
+}
+
+.navbar-sidebar__brand {
+  box-shadow: none;
+  border-bottom: 1px solid var(--gd-border);
+}
+
+/* 移动端抽屉：更大的点击区域，返回按钮保持中性色 */
+.navbar-sidebar .menu__link,
+.navbar-sidebar .menu__list-item-collapsible {
+  font-size: 0.9375rem;
+}
+
+.navbar-sidebar .menu__link {
+  padding-block: 0.625rem;
+}
+
+.navbar-sidebar__back {
+  background: var(--gd-bg-subtle);
+  border-radius: var(--gd-radius-sm);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--gd-ink-muted);
+}
+
+.navbar-sidebar__back:hover {
+  background: var(--gd-surface);
+  color: var(--gd-ink);
+}
+
+/* ==========================================================================
+   4. 侧边栏
+   ========================================================================== */
+
+/* 右侧分割线由主题按 --ifm-toc-border-color 绘制，这里只补背景 */
+.theme-doc-sidebar-container {
+  background: var(--gd-bg);
+}
+
+.menu {
+  padding: 1rem 0.875rem 2rem;
+  font-weight: 450;
+}
+
+.menu__list .menu__list {
+  margin-top: 0.125rem;
+  margin-left: 0.75rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--gd-border);
+}
+
+.menu__link,
+.menu__list-item-collapsible {
+  border-radius: var(--gd-radius-sm);
+  font-size: 0.8438rem;
+  line-height: 1.5;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.menu__link {
+  padding-block: 0.375rem;
+}
+
+.menu__list-item-collapsible:hover {
+  background: var(--gd-surface);
+}
+
+.menu__list-item-collapsible .menu__link:hover,
+.menu__list-item-collapsible .menu__link--active {
+  background: transparent;
+}
+
+/* 选中态底色来自 --ifm-menu-color-background-active */
+.menu__link--active:not(.menu__link--sublist) {
+  font-weight: 600;
+}
+
+/* 一级分类标题：小号大写，做视觉分组 */
+.theme-doc-sidebar-item-category-level-1
+  > .menu__list-item-collapsible
+  > .menu__link {
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--gd-ink-muted);
+}
+
+.theme-doc-sidebar-item-category-level-1:not(:first-child) {
+  margin-top: 1rem;
+}
+
+.theme-doc-sidebar-item-category-level-1 > .menu__list-item-collapsible:hover {
+  background: transparent;
+}
+
+.theme-doc-sidebar-item-category-level-1
+  > .menu__list-item-collapsible
+  > .menu__link:hover {
+  color: var(--gd-ink);
+}
+
+.theme-doc-sidebar-item-category-level-1 > .menu__list {
+  margin-left: 0;
+  padding-left: 0;
+  border-left: 0;
+}
+
+/* 折叠箭头 */
+.menu__caret {
+  border-radius: var(--gd-radius-sm);
+}
+
+.menu__link--sublist-caret::after,
+.menu__caret::before {
+  background-size: 1.25rem 1.25rem;
+  opacity: 0.45;
+  transition: opacity 0.12s ease;
+}
+
+.menu__list-item-collapsible:hover .menu__link--sublist-caret::after,
+.menu__caret:hover::before {
+  opacity: 0.8;
+}
+
+/* ==========================================================================
+   5. 正文
+   ========================================================================== */
+
+.theme-doc-markdown {
+  max-width: 52rem;
+}
+
+main .container {
+  padding-top: 1.75rem;
+  padding-bottom: 3.5rem;
+}
+
+/* 面包屑 */
+.theme-doc-breadcrumbs {
+  margin-bottom: 1.25rem;
+}
+
+.breadcrumbs__item {
+  color: var(--gd-ink-muted);
+}
+
+.breadcrumbs__link {
+  font-size: 0.8125rem;
+  font-weight: 450;
+  color: var(--gd-ink-muted);
+  background: transparent;
+  padding: 0.125rem 0.25rem;
+}
+
+.breadcrumbs__link:hover {
+  background: transparent;
+  color: var(--gd-ink);
+}
+
+/*
+ * 颜色要写在这里：本文件不在 @layer 里，上面的 .breadcrumbs__link 会盖掉主题
+ * 那条 --ifm-breadcrumb-color-active 规则（无层样式优先于分层样式）。
+ */
+.breadcrumbs__item--active .breadcrumbs__link {
+  color: var(--gd-ink-soft);
+  font-weight: 500;
+}
+
+.breadcrumbs__item:not(:last-child)::after {
+  opacity: 0.4;
+  margin: 0 0.125rem;
+}
+
+/*
+ * 标题：字号必须在这几个选择器上声明 —— infima 直接在
+ * .markdown h1:first-child / .markdown > h2 / .markdown > h3 上覆盖了
+ * --ifm-h*-font-size，写在 :root 里不生效。
+ */
+.markdown h1:first-child {
+  --ifm-h1-font-size: 2.125rem;
+  letter-spacing: -0.025em;
+  margin-bottom: 1.25rem;
+}
+
+.markdown > h2 {
+  --ifm-h2-font-size: 1.5rem;
+  margin-top: 3rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--gd-border);
+  letter-spacing: -0.018em;
+}
+
+.markdown > h3 {
+  --ifm-h3-font-size: 1.1875rem;
+  margin-top: 2.25rem;
+  letter-spacing: -0.012em;
+}
+
+.markdown > h4 {
+  margin-top: 1.75rem;
+  color: var(--gd-ink);
+}
+
+/* 主题已有 opacity: 0 与过渡，这里只调颜色和显示时的深浅 */
+.hash-link {
+  color: var(--ifm-color-primary);
+}
+
+.hash-link:focus,
+:hover > .hash-link {
+  opacity: 0.6;
+}
+
+/* 列表（缩进见 --ifm-list-left-padding） */
+.markdown li {
+  margin-top: 0.375rem;
+}
+
+.markdown li::marker {
+  color: var(--gd-border-strong);
+}
+
+/* 表格 */
+.markdown table {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--gd-border);
+  border-radius: var(--gd-radius-lg);
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  box-shadow: var(--ifm-global-shadow-lw);
+}
+
+/* 表头底色来自 --ifm-table-head-background */
+.markdown table th {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--gd-ink);
+  white-space: nowrap;
+}
+
+.markdown table th,
+.markdown table td {
+  border: 0;
+  border-bottom: 1px solid var(--gd-border);
+  vertical-align: top;
+}
+
+.markdown table tbody tr {
+  transition: background-color 0.12s ease;
+}
+
+.markdown table tbody tr:hover {
+  background: var(--gd-accent-softer);
+}
+
+.markdown table tr:last-child td {
+  border-bottom: 0;
+}
+
+.markdown table code {
+  white-space: nowrap;
+}
+
+/* 行内代码 */
+.markdown code:not(pre code) {
+  border: 1px solid var(--gd-border);
+  color: var(--gd-ink);
+  font-weight: 450;
+}
+
+.markdown a code {
+  color: inherit;
+  border-color: color-mix(in srgb, var(--ifm-color-primary) 30%, transparent);
+  background: var(--gd-accent-softer);
+}
+
+/* 代码块（底色由 docusaurus.config.ts 里的 prism 主题给出） */
+.theme-code-block {
+  border: 1px solid var(--gd-border);
+  border-radius: var(--gd-radius-lg);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.theme-code-block pre {
+  font-size: 0.8438rem;
+  line-height: 1.65;
+  border-radius: 0;
+  margin: 0;
+}
+
+/*
+ * 代码块标题栏（```lang title="..."）。主题给这个元素的是 CSS Module 哈希类名，
+ * 只能靠结构选择：有标题时容器有两个子元素，没标题时唯一的子元素被 :only-child 排除。
+ */
+.theme-code-block > div:first-child:not(:only-child) {
+  background: var(--gd-bg-subtle);
+  border-bottom: 1px solid var(--gd-border);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gd-ink-muted);
+  padding: 0.5rem 1.25rem;
+}
+
+/* 复制 / 折行按钮 */
+.theme-code-block button {
+  background: var(--gd-bg-subtle);
+  border: 1px solid var(--gd-border);
+  border-radius: var(--gd-radius-sm);
+}
+
+.theme-code-block button:hover {
+  border-color: var(--gd-border-strong);
+}
+
+/* 引用 */
+.markdown blockquote {
+  background: var(--gd-bg-subtle);
+  border-left: 2px solid var(--gd-border-strong);
+  border-radius: 0 var(--gd-radius-sm) var(--gd-radius-sm) 0;
+  padding: 0.875rem 1.125rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9375rem;
+}
+
+.markdown blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+/* 提示框（:::note 等，配合上面的 --ifm-alert-* ） */
+.theme-admonition {
+  border-color: var(--gd-border);
+  box-shadow: none;
+  font-size: 0.9375rem;
+}
+
+/* 图片 */
+.markdown img {
+  border: 1px solid var(--gd-border);
+  border-radius: var(--gd-radius-lg);
+}
+
+/* ==========================================================================
+   6. 右侧目录与翻页
+   ========================================================================== */
+
+/* 左侧竖线由主题的 .table-of-contents__left-border 按 --ifm-toc-border-color 绘制 */
+.table-of-contents {
+  font-size: 0.8125rem;
+}
+
+/* 文字色来自 --ifm-toc-link-color */
+.table-of-contents__link {
+  padding: 0.1875rem 0;
+  line-height: 1.5;
+}
+
+.table-of-contents__link:hover,
+.table-of-contents__link--active {
+  color: var(--gd-ink);
+}
+
+.table-of-contents__link--active {
+  font-weight: 600;
+  color: var(--ifm-color-primary);
+}
+
+.theme-doc-toc-desktop {
+  top: calc(var(--ifm-navbar-height) + 1.5rem);
+}
+
+/* 移动端「本页总览」折叠块 */
+.theme-doc-toc-mobile {
+  background: var(--gd-bg-subtle);
+  border: 1px solid var(--gd-border);
+  border-radius: var(--gd-radius-lg);
+}
+
+.theme-doc-toc-mobile > button {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--gd-ink);
+}
+
+/* 只给最外层列表加分隔线：嵌套列表没有 .table-of-contents 类 */
+.theme-doc-toc-mobile ul.table-of-contents {
+  border-top: 1px solid var(--gd-border);
+  padding-top: 0.5rem;
+}
+
+/* 翻页 */
+.pagination-nav {
+  gap: 1rem;
+  margin-top: 3rem;
+  border-top: 1px solid var(--gd-border);
+  padding-top: 2rem;
+}
+
+.pagination-nav__link {
+  border: 1px solid var(--gd-border);
+  border-radius: var(--gd-radius-lg);
+  padding: 0.875rem 1.125rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.pagination-nav__link:hover {
+  border-color: color-mix(in srgb, var(--ifm-color-primary) 45%, transparent);
+  background: var(--gd-accent-softer);
+  transform: translateY(-1px);
+}
+
+.pagination-nav__sublabel {
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gd-ink-muted);
+}
+
+.pagination-nav__label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--gd-ink);
+}
+
+/* ==========================================================================
+   7. 页脚
+   ========================================================================== */
+
+.footer {
+  border-top: 1px solid var(--gd-border);
+  font-size: 0.875rem;
+}
+
+.footer__title {
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-bottom: 0.875rem;
+}
+
+.footer__item {
+  padding: 0.1875rem 0;
+}
+
+.footer__link-item {
+  color: var(--gd-ink-muted);
+}
+
+.footer__link-item:hover {
+  color: var(--ifm-color-primary);
+}
+
+.footer__bottom {
+  margin-top: 1rem;
+  font-size: 0.8125rem;
+  color: var(--gd-ink-muted);
+}
+
+.footer__copyright {
+  color: var(--gd-ink-muted);
+}
+
+/* ==========================================================================
+   8. 首页（docs/intro.md）
+
+   下面这几条依赖文档 id：docs-doc-id-intro 由 docs/intro.md 的路径生成。
+   Docusaurus 没有「单篇文档加 class」的配置，所以只能这样挂。
+   改名或移动 docs/intro.md 会让首页样式静默失效（不会报错），记得同步这里。
+   ========================================================================== */
+
+html.docs-doc-id-intro .theme-doc-breadcrumbs {
+  display: none;
+}
+
+html.docs-doc-id-intro .theme-doc-markdown {
+  max-width: 54rem;
+}
+
+html.docs-doc-id-intro .markdown h1:first-child {
+  font-size: clamp(2.25rem, 4vw, 3rem);
+  letter-spacing: -0.035em;
+  margin-bottom: 1rem;
+}
+
+/* 首屏导语 */
+html.docs-doc-id-intro .markdown h1:first-child + p {
+  max-width: 38rem;
+  margin-bottom: 2.5rem;
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: var(--gd-ink-muted);
+}
+
+/* ==========================================================================
+   9. 响应式与无障碍
+   ========================================================================== */
+
+@media (max-width: 996px) {
+  :root {
+    --ifm-navbar-padding-horizontal: 1rem;
+  }
+
+  main .container {
+    padding-top: 1.25rem;
+  }
+
+  .markdown h1:first-child {
+    --ifm-h1-font-size: 1.75rem;
+  }
+
+  .markdown > h2 {
+    --ifm-h2-font-size: 1.375rem;
+    margin-top: 2.25rem;
+    padding-top: 1.25rem;
+  }
+
+  .markdown > h3 {
+    --ifm-h3-font-size: 1.125rem;
+  }
+
+  .theme-doc-markdown,
+  html.docs-doc-id-intro .theme-doc-markdown {
+    max-width: 100%;
+  }
+
+  .theme-code-block pre {
+    font-size: 0.8125rem;
+  }
+}
+
+:where(a, button):focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+  border-radius: var(--gd-radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
