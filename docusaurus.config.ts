@@ -1,6 +1,17 @@
 import {themes as prismThemes} from 'prism-react-renderer';
+import type {PrismTheme} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+
+// 代码块底色跟站点保持一致（对应 custom.css 里的 --gd-bg-subtle）。
+// prism 主题的 plain 会变成 <pre> 的行内样式，所以只能在这里改，不能靠 CSS 覆盖。
+const withCodeBackground = (
+  theme: PrismTheme,
+  backgroundColor: string,
+): PrismTheme => ({
+  ...theme,
+  plain: {...theme.plain, backgroundColor, textShadow: 'none'},
+});
 
 const config: Config = {
   title: '金数据开放平台',
@@ -59,6 +70,10 @@ const config: Config = {
     colorMode: {
       respectPrefersColorScheme: true,
     },
+    docs: {
+      // 不提供「收起侧边栏」按钮（与主题默认一致，这里显式写出以免又被打开）
+      sidebar: {hideable: false},
+    },
     navbar: {
       title: '金数据开放平台',
       logo: {
@@ -80,7 +95,7 @@ const config: Config = {
       ],
     },
     footer: {
-      style: 'dark',
+      style: 'light',
       links: [
         {
           title: '文档',
@@ -145,8 +160,8 @@ const config: Config = {
       copyright: `© ${new Date().getFullYear()} 金数据开放平台 - 文档中心`,
     },
     prism: {
-      theme: prismThemes.github,
-      darkTheme: prismThemes.dracula,
+      theme: withCodeBackground(prismThemes.oneLight, '#fbfaf9'),
+      darkTheme: withCodeBackground(prismThemes.oneDark, '#17171b'),
       additionalLanguages: ['bash', 'ruby', 'java', 'python', 'json', 'http'],
     },
   } satisfies Preset.ThemeConfig,
