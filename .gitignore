@@ -1,12 +1,13 @@
 # Dependencies
 /node_modules
 
-# Production
-/build
+# 构建产物
+/dist
+/site/dist
 
-# Generated files
-.docusaurus
-.cache-loader
+# 生成物：npm run data 从 docs/ 和 static/img/ 产出，不入库
+/site/src/data/
+/site/public/img/
 
 # Misc
 .DS_Store

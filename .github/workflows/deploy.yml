@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -21,23 +22,49 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 需要 Node 22：构建脚本用 --experimental-strip-types 直接 import sidebars.ts
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 22
 
-      - name: Install dependencies
-        run: npm ci
+      # 站点没有运行时依赖，装的这些只是给 test/check-snippets.mjs
+      # 真的把生成的 Python 片段跑一遍用的
+      - name: Install check dependencies
+        run: pip install --quiet requests pyjwt
 
-      - name: Build website
-        run: npm run build
+      # 基路径和站点地址取自仓库的 Pages 配置，不写死：
+      # 本仓库是自定义域名（open.jinshuju.net，根路径），而 fork 出去的项目站挂在
+      # /<仓库名>/ 子路径下。configure-pages 会把两种情况都算好，于是同一份
+      # workflow 在上游和任何 fork 上都能部署出链接正确的站点。
+      # PR 事件里 token 是只读的，读不到 Pages 配置，那时就用默认根路径构建
+      # ——PR 只做构建和检查，不部署，基路径不影响结论。
+      - name: Resolve Pages base path
+        id: pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
+
+      - name: Build site
+        env:
+          PAGES_BASE: ${{ steps.pages.outputs.base_path }}
+          PAGES_URL: ${{ steps.pages.outputs.base_url }}
+        run: |
+          if [ -n "$PAGES_URL" ]; then
+            npm run build -- --base="$PAGES_BASE" --site-url="$PAGES_URL"
+          else
+            npm run build
+          fi
+
+      - name: Run checks
+        run: npm test
 
       - name: Upload artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build
+          path: dist
 
   deploy:
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
