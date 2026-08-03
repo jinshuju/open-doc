@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -21,23 +22,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 需要 Node 22：构建脚本用 --experimental-strip-types 直接 import sidebars.ts
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 22
 
-      - name: Install dependencies
-        run: npm ci
+      # 站点没有运行时依赖，装的这些只是给 test/check-snippets.mjs
+      # 真的把生成的 Python 片段跑一遍用的
+      - name: Install check dependencies
+        run: pip install --quiet requests pyjwt
 
-      - name: Build website
+      - name: Build site
         run: npm run build
 
+      - name: Run checks
+        run: npm test
+
       - name: Upload artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build
+          path: dist
 
   deploy:
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

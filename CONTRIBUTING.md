@@ -21,9 +21,19 @@ Please make sure your contribution:
 
 ## Local preview
 
+Requires Node >= 22. The site has no runtime dependencies, so there is nothing to install.
+
 ```bash
-npm install
 npm run start
 ```
 
 Then visit `http://localhost:3000`.
+
+Documentation lives in `docs/`; the rendering layer lives in `site/`. To add a page, write
+the `.md` under `docs/` and reference it from `sidebars.ts` — no changes under `site/` needed.
+
+Before opening a pull request:
+
+```bash
+npm run build && npm test
+```
