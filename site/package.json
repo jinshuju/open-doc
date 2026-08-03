@@ -1,0 +1,6 @@
+{
+  "//": "只为把 site/ 下的 .js 按 ES module 解析（public/markdown.js 等既要给浏览器用，也要被构建脚本 import）。这里不装任何依赖。",
+  "name": "open-doc-site",
+  "private": true,
+  "type": "module"
+}
