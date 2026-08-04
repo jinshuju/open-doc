@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: POST
+sidebar_label: 批量新增数据
+---
+
 # v1 API 批量新增数据
 
 > API 使用者，可以通过本接口一次向自己创建的表单中新增多条数据。适合一次导入大量记录的场景，相比逐条调用[新增数据](/api_v1/endpoints/create_form_entry)能显著减少请求次数。

@@ -49,6 +49,11 @@ const config: Config = {
     ],
   ],
 
+  // 接口页右侧的「在线调试」面板：纯客户端脚本，不改内容也不 swizzle 主题。
+  // 它在浏览器里读已经渲染出来的页面（见 src/js/api-runner/parse.js），
+  // 读不出接口信息就什么都不做，页面与没装它时完全一致。
+  clientModules: ['./src/js/api-runner/index.js'],
+
   plugins: [
     [
       'docusaurus-plugin-llms',

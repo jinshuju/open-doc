@@ -1,0 +1,829 @@
+/**
+ * 在线调试面板的样式。
+ *
+ * 规则主体来自独立站那版（archive/static-render-layer 的 site/public/app.css），
+ * 全部圈在 .jsj-runner-root 作用域里，不会漏到文档站其它地方。
+ *
+ * 配色刻意复用上游 custom.css 已经定义好的 --gd-* 令牌（--gd-bg / --gd-ink /
+ * --gd-border 等 11 个），所以面板的亮/暗色是跟着站点主题自动走的，
+ * 这里不重复定义任何颜色。只补上游没有的那几个面板专用令牌。
+ *
+ * 布局上是「固定定位的侧滑面板」：不开的时候 DOM 里只有一个隐藏容器，
+ * 完全不参与 Docusaurus 的页面布局，所以对原页面零影响。
+ */
+
+/* ---- 上游没有的令牌。挂在这三个根上而不是 :root，免得影响页面其他部分 ---- */
+.jsj-runner-root,
+.jsj-open-runner,
+.jsj-toast {
+  /* 字体和主色映射到 infima 变量，跟着站点主题走 */
+  --font-base: var(--ifm-font-family-base);
+  --font-mono: var(--ifm-font-family-monospace);
+  --gd-accent: var(--ifm-color-primary);
+  --gd-accent-dark: var(--ifm-color-primary-dark);
+  --gd-shadow-lw: 0 1px 2px 0 #0000001a;
+  /* JSON 编辑器固定深色，与站点主题无关（浅色底上看长 JSON 更累） */
+  --jsed-bg: #0f1014;
+  --jsed-ink: #c8d0e0;
+  --jsed-muted: #6f7681;
+  --jsed-rule: #23262e;
+  --m-get: #2f7d55;
+  --m-post: #b26a12;
+  --m-put: #2f6bb0;
+  --m-patch: #7a4fbe;
+  --m-delete: #c1352c;
+}
+
+/* 这两个尺寸必须挂在 :root：layout.js 拖动时是往 :root 上写的。
+   如果在 .jsj-runner-root 上也定义一份，面板会就近继承那份固定值，
+   于是变量确实被改了（aria-valuenow 都在动），但宽度死活不变。 */
+:root {
+  --runner-w: 480px;
+  --runner-out-h: 344px;
+}
+[data-theme='dark'] .jsj-runner-root,
+[data-theme='dark'] .jsj-open-runner,
+[data-theme='dark'] .jsj-toast {
+  --gd-shadow-lw: 0 1px 2px #0006;
+  --m-get: #6fc79a;
+  --m-post: #e3ab5e;
+  --m-put: #7fb2ea;
+  --m-patch: #bb9bf0;
+  --m-delete: #ff8f85;
+}
+
+/* ---- 侧滑容器：铺满导航栏以下，但只有面板本身接收点击 ---- */
+.jsj-runner-root {
+  position: fixed;
+  inset: var(--ifm-navbar-height) 0 0 0;
+  z-index: 300;
+  pointer-events: none;
+  font-family: var(--font-base);
+}
+.jsj-runner-root .runner { pointer-events: auto; }
+.jsj-runner-root .modal-root { pointer-events: auto; }
+
+/* 遮罩：淡入，点了收面板 */
+.jsj-runner-root .jsj-backdrop {
+  position: absolute; inset: 0;
+  border: 0; padding: 0; cursor: default;
+  background: #00000038;
+  opacity: 0; transition: opacity 0.2s;
+  pointer-events: auto;
+}
+.jsj-runner-root.open .jsj-backdrop { opacity: 1; }
+
+/* 面板滑入。translateX 多给 24px，投影也一起挪出视口外 */
+.jsj-runner-root .runner {
+  transform: translateX(calc(100% + 24px));
+  transition: transform 0.2s ease;
+}
+.jsj-runner-root.open .runner { transform: none; }
+
+/* ---- 停靠：打开面板时把正文区压窄，而不是盖在上面 ---- */
+/* 压的是 .main-wrapper（Docusaurus 稳定类），导航栏在它外面所以仍是整宽。
+   往左拖越过正文安全宽度后 layout.js 会挂上 .jsj-runner-overlay 改成浮窗。 */
+body.jsj-runner-open .main-wrapper {
+  /* 面板本体距右边缘 12px，再留一点余量，免得「本页总览」的右侧压到面板下面 */
+  padding-right: calc(var(--runner-w) + 44px);
+  transition: padding-right 0.16s ease;
+}
+body.jsj-runner-open.jsj-runner-overlay .main-wrapper { padding-right: 0; }
+body.jsj-resize-col .main-wrapper { transition: none; }
+
+
+/* 遮罩只在浮窗模式下出现；停靠时页面照常可点 */
+.jsj-runner-root .jsj-backdrop { display: none; }
+body.jsj-runner-overlay .jsj-runner-root .jsj-backdrop { display: block; }
+body.jsj-runner-overlay .jsj-runner-root .runner {
+  box-shadow: 0 24px 64px -28px #00000080, 0 6px 18px -10px #00000045;
+}
+
+/* 拖拽时别选中文字，光标保持成拖拽样式 */
+body.jsj-resize-col, body.jsj-resize-col * { cursor: col-resize !important; user-select: none !important; }
+body.jsj-resize-row, body.jsj-resize-row * { cursor: row-resize !important; user-select: none !important; }
+
+/* ---- 两个拖拽手柄 ---- */
+.jsj-runner-root .resize-handle { touch-action: none; user-select: none; z-index: 8; }
+/* 手柄要足够好抓：18px 宽，并且往左跨出面板 6px——用户看到的「缝」在面板边框上，
+   手柄只待在内侧的话很难对准（原来 10px 全在内侧，实际拖不到）。 */
+/* 别往左跨出面板：.runner 有 overflow:hidden，跨出去的部分会被剪掉，反而更抓不到。
+   改成贴着左边框往内 18px，比原来的 10px 好抓不少。 */
+.jsj-runner-root .resize-runner {
+  position: absolute; top: 0; bottom: 0; left: 0; width: 18px;
+  cursor: col-resize;
+  z-index: 20;
+}
+/* 常显一小段抓手，让人看得出这里能拖；hover / 拖动时变成整条强调色 */
+.jsj-runner-root .resize-runner::after {
+  content: ""; position: absolute; left: 3px;
+  top: 50%; height: 44px; width: 3px; margin-top: -22px;
+  border-radius: 3px;
+  background: var(--gd-border-strong);
+  transition: background-color 0.12s, height 0.12s, margin-top 0.12s;
+}
+.jsj-runner-root .resize-runner:hover::after,
+.jsj-runner-root .resize-runner.active::after {
+  background: var(--gd-accent); height: 72px; margin-top: -36px;
+}
+.jsj-runner-root .resize-runner-split {
+  position: relative; flex: none; height: 20px; margin: 0 14px;
+  cursor: row-resize;
+  z-index: 20;
+}
+.jsj-runner-root .resize-runner-split::after {
+  content: ""; position: absolute; left: 50%; top: 9px;
+  width: 48px; height: 2px; border-radius: 2px;
+  background: var(--gd-border-strong); transform: translateX(-50%);
+  transition: width 0.12s, background-color 0.12s;
+}
+.jsj-runner-root .resize-runner-split:hover::after,
+.jsj-runner-root .resize-runner-split.active::after { width: 72px; background: var(--gd-accent); }
+
+/* ---- 正文标题下面那个唤出按钮 ---- */
+.jsj-open-runner {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin: 0;
+  padding: 5px 12px;
+  border: 1px solid var(--gd-border-strong); border-radius: 999px;
+  background: var(--gd-bg);
+  color: var(--gd-ink-soft);
+  font: 500 0.8125rem/1.5 var(--font-base);
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background-color 0.12s;
+}
+.jsj-open-runner:hover {
+  border-color: var(--gd-accent);
+  color: var(--gd-accent);
+  background: var(--gd-accent-soft);
+}
+
+/* ---- toast（挂在 body 上，不在面板作用域内） ---- */
+.jsj-toast {
+  position: fixed; left: 50%; bottom: 32px;
+  transform: translate(-50%, 8px);
+  z-index: 400;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--gd-ink);
+  color: var(--gd-bg);
+  font: 400 0.8125rem/1.5 var(--font-base);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.16s, transform 0.16s;
+}
+.jsj-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* 窄屏：面板占满 */
+@media (max-width: 640px) {
+  .jsj-runner-root { --runner-w: 100%; }
+  .jsj-runner-root .runner { top: 0; right: 0; bottom: 0; border-radius: 0; }
+}
+
+/* ---- 来自独立站版 app.css：面板主体 / 顶部栏 / 分区 / JSON 编辑器 / 结果区 ---- *//* ============ 右侧在线调试 ============ */
+
+
+.jsj-runner-root .runner {
+  position: absolute; z-index: 12;
+  top: 12px; right: 12px; bottom: 12px; width: var(--runner-w);
+  max-width: calc(100vw - 32px);
+  border: 1px solid var(--gd-border-strong); border-radius: 1rem;
+  background: var(--gd-bg-subtle);
+  box-shadow: 0 18px 48px -24px #00000073, 0 4px 14px -8px #00000038;
+  display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+}
+
+
+
+
+.jsj-runner-root .runner-top {
+  flex: none;
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--gd-border);
+  background: var(--gd-bg);
+}
+
+.jsj-runner-root .runner-scroll {
+  flex: 1; min-height: 0; overflow-y: auto;
+  margin: 14px 14px 0; padding: 14px 14px 20px;
+  border: 1px solid var(--gd-border-strong); border-radius: var(--gd-radius-lg);
+  background: var(--gd-bg); box-shadow: var(--gd-shadow-lw);
+  scrollbar-width: thin;
+}
+.jsj-runner-root .runner-scroll::-webkit-scrollbar { width: 7px; }
+.jsj-runner-root .runner-scroll::-webkit-scrollbar-thumb { background: var(--gd-border); border-radius: 4px; }
+
+
+
+/* ---- 顶部栏：方法 + 地址 + 重置/发送 ---- */
+
+
+
+.jsj-runner-root .runner-req {
+  /* 一行放不下就压缩地址栏（它自己能横向滚），不折行 */
+  flex: 1 1 auto; min-width: 0;
+  display: flex; align-items: center; gap: 10px;
+}/* 顶部栏这里的方法标记做成带底色的胶囊：它是这一栏的主角，
+   比菜单里那种无底色细字更该被看见。底色取方法自己的颜色。 */
+
+.jsj-runner-root .runner-top .verb {
+  font: 650 10.5px/1 var(--font-mono);
+  padding: 5px 8px; border-radius: 5px;
+  background: color-mix(in srgb, currentColor 13%, transparent);
+  opacity: 1;
+}
+.jsj-runner-root .runner-url {
+  flex: 1 1 auto; min-width: 56px; overflow-x: auto; white-space: nowrap;
+  color: var(--gd-ink); font: 400 13px/1.5 var(--font-mono);
+  scrollbar-width: none;
+}
+.jsj-runner-root .runner-url::-webkit-scrollbar { display: none; }/* 多方法接口：那个彩色标签本身就是下拉 */
+
+.jsj-runner-root .runner-verb-sel {
+  flex: none; border: 0; cursor: pointer; appearance: none;
+  padding-right: 15px;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right 6px center, right 3px center;
+  background-size: 3px 3px, 3px 3px;
+  background-repeat: no-repeat;
+}/* 按钮整组一起折行，别把「重置」和「发送请求」拆到两行 */
+
+.jsj-runner-root .runner-acts {
+  flex: none; margin-left: auto;
+  display: flex; align-items: center; gap: 8px;
+}
+.jsj-runner-root .runner-acts .btn-accent { padding: 6px 16px; }
+.jsj-runner-root .runner-acts .clean-btn { margin-left: 2px; }/* ---- 分区：凭据 / PATH / QUERY / BODY ---- *//* 横线只画在参数行之间（见 .rrow）；分区之间靠空白分开，别再来一条线 */
+
+
+
+
+.jsj-runner-root .rsec { padding: 0 0 4px; }
+.jsj-runner-root .rsec + .rsec { margin-top: 26px; }
+.jsj-runner-root .rsec-head {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px 9px;
+  margin-bottom: 12px;
+}
+.jsj-runner-root .rsec-tag {
+  color: var(--gd-ink-muted);
+  font: 550 0.6875rem/1.4 var(--font-mono);
+  letter-spacing: 0.08em;
+}
+.jsj-runner-root .rsec-name { color: var(--gd-ink-muted); font: 400 12px/1.4 var(--font-mono); }
+.jsj-runner-root .rsec-head .grow { flex: 1; }
+.jsj-runner-root .rsec-hint { margin-top: 9px; color: var(--gd-ink-muted); font-size: 12px; }/* 分区标题行右侧的工具按钮 */
+
+
+.jsj-runner-root .rtool {
+  flex: none; height: 30px; padding: 0 13px;
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+  border: 1px solid var(--gd-border-strong); border-radius: var(--gd-radius-sm);
+  background: var(--gd-bg); color: var(--gd-ink-soft);
+  font: 500 12.5px/1 var(--font-base); cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+.jsj-runner-root .rtool:hover { border-color: var(--gd-ink-muted); color: var(--gd-ink); }
+.jsj-runner-root .rtool-icon {
+  width: 30px; padding: 0;
+  display: inline-grid; place-items: center;
+}
+.jsj-runner-root .rtool-icon svg { display: block; }/* 参数行做成表格式：平时看着就是一行数据，鼠标移上去或点进去才显出输入框 */
+
+
+
+
+.jsj-runner-root .rrow {
+  /* 标签列只给到放得下最长参数名（API_SECRET / sign_secret）的宽度：
+     面板本来就窄，固定 168px 会把输入框挤到两百出头，placeholder 都显示不全 */
+  display: grid; grid-template-columns: minmax(0, 116px) minmax(0, 1fr);
+  gap: 12px; align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--gd-border);
+}
+.jsj-runner-root .rrow:hover { background: var(--gd-bg-subtle); }
+.jsj-runner-root .rrow > label {
+  color: var(--gd-ink-soft); font: 400 12.5px/1.5 var(--font-mono);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.jsj-runner-root .rrow > label .star { color: var(--gd-accent); margin-left: 3px; }
+.jsj-runner-root .rrow .ipt {
+  padding: 7px 10px;
+  border-color: transparent; background: transparent;
+  transition: border-color 0.12s, background 0.12s, box-shadow 0.12s;
+}
+.jsj-runner-root .rrow .ipt:hover { border-color: var(--gd-border); background: var(--gd-bg); }
+.jsj-runner-root .rrow .ipt:focus {
+  border-color: var(--gd-accent); background: var(--gd-bg);
+  box-shadow: 0 0 0 3px var(--gd-accent-soft);
+}/* JSON 合法 / 格式错误：做成徽章 */
+
+
+.jsj-runner-root .jsed-status {
+  flex: none; padding: 2px 9px; border-radius: 999px;
+  font: 550 11.5px/1.6 var(--font-base);
+  color: var(--gd-ink-muted); background: var(--gd-surface);
+}
+.jsj-runner-root .jsed-status.ok { color: var(--m-get); background: color-mix(in srgb, var(--m-get) 12%, transparent); }
+.jsj-runner-root .jsed-status.bad { color: var(--m-delete); background: color-mix(in srgb, var(--m-delete) 12%, transparent); }
+
+.jsj-runner-root .doc-jump {
+  flex: none; display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 3px;
+  border: 0; background: transparent; color: var(--gd-accent);
+  font: 550 12.5px/1.4 var(--font-base); cursor: pointer;
+}
+.jsj-runner-root .doc-jump:hover { text-decoration: underline; }
+.jsj-runner-root .doc-jump svg { opacity: 0.85; }
+
+.jsj-runner-root .frow { display: grid; grid-template-columns: 128px 1fr; gap: 10px; align-items: center; margin-bottom: 8px; }
+.jsj-runner-root .frow > label {
+  color: var(--gd-ink-soft); font: 400 12px/1.5 var(--font-mono);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.jsj-runner-root .frow > label .star { color: var(--gd-accent); margin-left: 2px; }
+
+.jsj-runner-root .ipt {
+  width: 100%; padding: 6px 9px;
+  border: 1px solid var(--gd-border); border-radius: var(--gd-radius-sm);
+  background: var(--gd-bg); color: var(--gd-ink);
+  font: 400 12.5px/1.5 var(--font-mono); outline: none;
+}
+.jsj-runner-root .ipt::placeholder { color: var(--gd-ink-muted); opacity: 0.7; }
+.jsj-runner-root .ipt:focus { border-color: var(--gd-border-strong); }
+.jsj-runner-root textarea.ipt { resize: vertical; min-height: 128px; line-height: 1.55; }
+.jsj-runner-root select.ipt { font-family: var(--font-base); cursor: pointer; }
+
+.jsj-runner-root .hint-box {
+  margin-top: 9px; padding: 9px 11px;
+  border: 1px solid var(--gd-border); border-radius: var(--gd-radius-sm);
+  background: var(--gd-bg-subtle);
+  color: var(--gd-ink-muted); font-size: 11.5px; line-height: 1.65;
+}
+.jsj-runner-root .hint-box a { font-size: 11.5px; }
+
+.jsj-runner-root .cred-links { margin-top: 10px; color: var(--gd-ink-muted); font-size: 11.5px; }
+.jsj-runner-root .cred-links a { font-size: 11.5px; }/* ---- JSON 编辑器 ---- */
+
+
+
+.jsj-runner-root .jsed {
+  border: 1px solid var(--gd-border);
+  border-radius: var(--gd-radius-sm);
+  background: var(--gd-bg-subtle);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}/* 编辑器的菜单栏：跟编辑器一样固定深色，左边 JSON，右边格式化 / 全屏 / 参数说明 */
+
+.jsj-runner-root .jsed-bar {
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+  padding: 7px 9px 7px 12px;
+  border-bottom: 1px solid var(--jsed-rule);
+  background: #1a1d23;
+}
+.jsj-runner-root .jsed-bar .grow { flex: 1; }
+.jsj-runner-root .jsed-name { color: #8b93a1; font: 500 12px/1.4 var(--font-mono); letter-spacing: 0.02em; }
+.jsj-runner-root .jsed-bar .rtool {
+  height: 26px; padding: 0 10px; font-size: 12px;
+  background: transparent; border-color: #333944; color: #b9c0cc;
+}
+.jsj-runner-root .jsed-bar .rtool:hover { border-color: #59616f; color: #e8ecf2; background: #22262e; }/* 纯图标按钮要把 .jsed-bar .rtool 的左右内边距清掉，
+   否则 26px 宽被内边距吃掉，图标会被挤偏 */
+
+.jsj-runner-root .jsed-bar .rtool-icon { width: 26px; padding: 0; }/* 深色底上正文那个红色 accent 对比度不够，固定用亮一档的 */
+
+.jsj-runner-root .jsed-bar .doc-jump { color: #ff9c94; font-size: 12px; }
+
+.jsj-runner-root .jsed-body {
+  display: flex; min-height: 0;
+  height: 270px;
+  background: var(--gd-bg);
+}
+.jsj-runner-root .jsed-gutter {
+  flex: none; width: 48px;
+  padding: 10px 8px 10px 0;
+  overflow: hidden;
+  text-align: right;
+  border-right: 1px solid var(--gd-border);
+  background: var(--gd-bg-subtle);
+  color: var(--gd-ink-muted);
+  font: 400 12.5px/1.6 var(--font-mono);
+  white-space: pre;
+  user-select: none;
+}
+.jsj-runner-root .jsed-line { display: block; position: relative; min-height: 1.6em; }
+.jsj-runner-root .jsed-line.has-error { color: var(--m-delete); font-weight: 650; }
+.jsj-runner-root .jsed-line.has-error::before {
+  content: "!"; position: absolute; left: 4px; top: 50%; transform: translateY(-50%);
+  width: 13px; height: 13px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--m-delete); color: white;
+  font: 700 9px/13px var(--font-base);
+}
+.jsj-runner-root .jsed-code { position: relative; flex: 1; min-width: 0; }
+
+.jsj-runner-root .jsed-hl, .jsj-runner-root .jsed-input {
+  position: absolute; inset: 0;
+  margin: 0; padding: 10px 12px;
+  border: 0; outline: none;
+  font: 400 12.5px/1.6 var(--font-mono);
+  white-space: pre; tab-size: 2;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+.jsj-runner-root .jsed-hl {
+  pointer-events: none; z-index: 0;
+  background: var(--gd-bg); color: var(--gd-ink);
+  scrollbar-width: none;
+}
+.jsj-runner-root .jsed-hl code { font: inherit; background: none; border: none; padding: 0; }
+.jsj-runner-root .jsed-input {
+  z-index: 1; resize: none;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--gd-accent);
+}
+.jsj-runner-root .jsed-input::selection { background: color-mix(in srgb, var(--gd-accent) 24%, transparent); }
+.jsj-runner-root .jsed-input::-webkit-scrollbar { width: 8px; height: 8px; }
+.jsj-runner-root .jsed-input::-webkit-scrollbar-thumb { background: var(--gd-border-strong); border-radius: 4px; }
+.jsj-runner-root .jsed-hl::-webkit-scrollbar { display: none; }/* 编辑器固定深色：JSON 高亮那套配色在亮色底上太淡，而且深色能把「这是代码」讲清楚 */
+
+
+.jsj-runner-root .jsed {
+  --jsed-bg: #0f1014;
+  --jsed-rule: #23262e;
+  --jsed-ink: #c8d0e0;
+  --jsed-muted: #6f7681;
+  background: var(--jsed-bg);
+  border-color: var(--jsed-rule);
+}
+.jsj-runner-root .jsed .jsed-gutter {
+  background: var(--jsed-bg); color: var(--jsed-muted);
+  border-right-color: var(--jsed-rule);
+}
+.jsj-runner-root .jsed .jsed-hl { background: var(--jsed-bg); color: var(--jsed-ink); }
+.jsj-runner-root .jsed .jsed-input { caret-color: #e8eaed; }
+.jsj-runner-root .jsed .jsed-input::selection { background: #33507a; }
+.jsj-runner-root .jsed .jsed-input::-webkit-scrollbar-thumb { background: #3a3f4a; }
+.jsj-runner-root .jsed .tok-key { color: #7dcfff; }
+.jsj-runner-root .jsed .tok-str { color: #9ece6a; }
+.jsj-runner-root .jsed .tok-num { color: #ff9e64; }
+.jsj-runner-root .jsed .tok-bool { color: #bb9af7; }
+.jsj-runner-root .jsed .tok-punc { color: #a9b1d6; }
+.jsj-runner-root .jsed .jsed-line.has-error { color: #ff8f85; }/* 全屏编辑：独立模态层，盖住顶栏 */
+
+
+
+.jsj-runner-root .modal-root {
+  position: fixed; inset: 0; z-index: 200;
+  display: grid; padding: 3vh 4vw;
+  background: color-mix(in srgb, var(--gd-ink) 46%, transparent);
+}
+.jsj-runner-root .modal-root[hidden] { display: none; }
+.jsj-runner-root .jsed-slot { display: none; }/* 顶栏的 backdrop-filter 会被浏览器提升图层，模态打开时先关掉 */
+
+.jsj-runner-root body.modal-open .navbar { backdrop-filter: none; -webkit-backdrop-filter: none; z-index: 1; }
+.jsj-runner-root body.modal-open { overflow: hidden; }
+
+.jsj-runner-root .jsed.jsed-full {
+  min-width: 0; min-height: 0;
+  border-radius: var(--gd-radius-lg);
+  border-color: var(--gd-border-strong);
+  box-shadow: 0 24px 60px -12px #00000040;
+}
+.jsj-runner-root .jsed.jsed-full .jsed-bar { padding: 10px 12px 10px 16px; }
+.jsj-runner-root .jsed.jsed-full .jsed-body { height: auto; flex: 1; }
+.jsj-runner-root .jsed.jsed-full .jsed-hl, .jsj-runner-root .jsed.jsed-full .jsed-input { font-size: 13.5px; padding: 14px 16px; }
+.jsj-runner-root .jsed.jsed-full .jsed-gutter { width: 54px; font-size: 13.5px; padding: 14px 10px 14px 0; }/* ---- 底部结果 / 代码卡片 ---- */
+
+
+
+.jsj-runner-root .runner-out {
+  flex: none; display: flex; flex-direction: column; min-height: 0;
+  height: var(--runner-out-h); margin: 0 14px 14px;
+  border: 1px solid var(--gd-border-strong); border-radius: var(--gd-radius-lg);
+  background: var(--gd-bg); box-shadow: var(--gd-shadow-lw); overflow: hidden;
+}
+.jsj-runner-root .tabs {
+  display: flex; align-items: center; gap: 2px; padding: 6px 12px 0;
+  border-bottom: 1px solid var(--gd-border); background: var(--gd-bg-subtle);
+}
+.jsj-runner-root .tab {
+  border: none; background: none; cursor: pointer;
+  padding: 7px 10px 8px; border-bottom: 2px solid transparent;
+  color: var(--gd-ink-muted); font: 500 12.5px/1.4 var(--font-base);
+}
+.jsj-runner-root .tab:hover { color: var(--gd-ink); }
+.jsj-runner-root .tab.on { color: var(--gd-ink); border-bottom-color: var(--gd-accent); font-weight: 600; }
+.jsj-runner-root .tabs .right { margin-left: auto; display: flex; align-items: center; gap: 6px; padding-bottom: 4px; }
+
+.jsj-runner-root .pill {
+  font: 600 11.5px/1 var(--font-mono);
+  padding: 3px 7px; border-radius: 4px;
+}
+.jsj-runner-root .pill.ok { color: var(--m-get); background: color-mix(in srgb, var(--m-get) 13%, transparent); }
+.jsj-runner-root .pill.bad { color: var(--m-delete); background: color-mix(in srgb, var(--m-delete) 13%, transparent); }
+.jsj-runner-root button.pill {
+  border: 0; font: 600 11.5px/1 var(--font-mono); cursor: pointer;
+}
+.jsj-runner-root button.pill.bad:hover { text-decoration: underline; outline: 1px solid color-mix(in srgb, var(--m-delete) 30%, transparent); }
+.jsj-runner-root .ms { color: var(--gd-ink-muted); font-size: 11.5px; }
+
+.jsj-runner-root .lang-select {
+  border: 1px solid var(--gd-border); border-radius: var(--gd-radius-sm);
+  background: var(--gd-bg); color: var(--gd-ink-soft);
+  font: 500 11.5px var(--font-base); padding: 3px 6px; outline: none; cursor: pointer;
+}
+
+.jsj-runner-root .out-pane {
+  flex: 1; min-height: 0; height: auto; overflow: auto; padding: 14px;
+  scrollbar-width: thin;
+}
+.jsj-runner-root .out-pane::-webkit-scrollbar { width: 7px; height: 7px; }
+.jsj-runner-root .out-pane::-webkit-scrollbar-thumb { background: var(--gd-border); border-radius: 4px; }
+.jsj-runner-root .out-pane .code-block { margin: 0; }
+.jsj-runner-root .out-pane pre { font-size: 0.8rem; line-height: 1.7; padding-top: 1.125rem; padding-bottom: 1.125rem; }
+.jsj-runner-root .code-ready-note {
+  margin-bottom: 10px; color: var(--gd-ink-muted);
+  font-size: 11.5px; line-height: 1.5;
+}
+.jsj-runner-root .out-empty {
+  display: grid; place-content: center; justify-items: center; gap: 10px;
+  height: 100%; padding: 24px; text-align: center;
+  color: var(--gd-ink-muted); font-size: 12.5px;
+}
+.jsj-runner-root .out-empty .ico {
+  width: 42px; height: 42px; border-radius: 12px;
+  background: var(--gd-surface); display: grid; place-items: center;
+}
+.jsj-runner-root .out-empty strong { color: var(--gd-ink-soft); font-weight: 600; }
+
+.jsj-toast {
+  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+  background: var(--gd-ink); color: var(--gd-bg);
+  padding: 8px 15px; border-radius: var(--gd-radius-sm);
+  font-size: 12.5px; z-index: 60;
+  opacity: 0; pointer-events: none; transition: opacity 0.18s;
+}
+.jsj-toast.show { opacity: 0.95; }/* ---- 来自独立站版 app.css：代码块 + 语法高亮 token ---- */
+
+
+
+.jsj-runner-root .code-block {
+  border: 1px solid var(--gd-border);
+  border-radius: var(--gd-radius-lg);
+  margin: 0 0 1.5rem;
+  overflow: hidden;
+  background: var(--gd-bg-subtle);
+}
+.jsj-runner-root .code-block-head {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--gd-bg-subtle);
+  border-bottom: 1px solid var(--gd-border);
+  color: var(--gd-ink-muted);
+  font: 600 0.75rem/1.5 var(--font-mono);
+  padding: 0.5rem 1.25rem;
+}
+.jsj-runner-root .code-block-head .grow { flex: 1; }
+.jsj-runner-root .code-block-head .mini {
+  border: 1px solid var(--gd-border); border-radius: var(--gd-radius-sm);
+  background: var(--gd-bg); color: var(--gd-ink-muted);
+  font: 500 11px/1 var(--font-base); padding: 3px 7px; cursor: pointer;
+}
+.jsj-runner-root .code-block-head .mini:hover { border-color: var(--gd-border-strong); color: var(--gd-ink); }
+.jsj-runner-root .code-block pre {
+  margin: 0; padding: 1rem 1.25rem; overflow-x: auto;
+  background: var(--gd-bg-subtle);
+  font: 400 0.8125rem/1.45 var(--font-mono);
+  color: var(--gd-ink);
+}
+.jsj-runner-root .code-block pre code { font: inherit; background: none; border: none; padding: 0; white-space: pre; }
+
+.jsj-runner-root .tok-key { color: #b1382a; }
+.jsj-runner-root .tok-str { color: #2f7d55; }
+.jsj-runner-root .tok-num { color: #2f6bb0; }
+.jsj-runner-root .tok-bool { color: #7a4fbe; }
+.jsj-runner-root .tok-cmt { color: var(--gd-ink-muted); font-style: italic; }
+.jsj-runner-root .tok-punc { color: var(--gd-ink-muted); }
+.jsj-runner-root [data-theme="dark"] .tok-key { color: #ff9a8c; }
+.jsj-runner-root [data-theme="dark"] .tok-str { color: #86d3a5; }
+.jsj-runner-root [data-theme="dark"] .tok-num { color: #8fb8ee; }
+.jsj-runner-root [data-theme="dark"] .tok-bool { color: #c3a4f2; }/* ---- 来自独立站版 app.css：按钮 / 图标按钮 / 小按钮 ---- */
+
+
+
+.jsj-runner-root .clean-btn {
+  width: 2rem; height: 2rem; border: none; border-radius: var(--gd-radius-sm);
+  background: transparent; color: var(--gd-ink-muted); cursor: pointer;
+  display: grid; place-items: center;
+}
+.jsj-runner-root .clean-btn:hover { background: var(--gd-surface); color: var(--gd-ink); }
+
+.jsj-runner-root .btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px;
+  border: 1px solid var(--gd-border); border-radius: var(--gd-radius-sm);
+  background: var(--gd-bg-subtle); color: var(--gd-ink-soft);
+  font: 500 12.5px/1.5 var(--font-base); cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.jsj-runner-root .btn:hover { border-color: var(--gd-border-strong); color: var(--gd-ink); }
+.jsj-runner-root .btn-accent {
+  background: var(--gd-accent); border-color: var(--gd-accent); color: #fff; font-weight: 600;
+}
+.jsj-runner-root .btn-accent:hover { background: var(--gd-accent-dark); border-color: var(--gd-accent-dark); color: #fff; }
+.jsj-runner-root .btn:disabled { opacity: 0.5; cursor: not-allowed; }/* 请求进行中：同一个按钮变成「取消」，用中性色和主色区分开 */
+
+.jsj-runner-root .btn-accent.cancel {
+  background: var(--gd-surface); border-color: var(--gd-border-strong);
+  color: var(--gd-ink-soft); font-weight: 500;
+}
+.jsj-runner-root .btn-accent.cancel:hover {
+  background: var(--gd-surface); border-color: var(--gd-ink-muted); color: var(--gd-ink);
+}/* ---- 来自独立站版 app.css：toast ---- */
+
+
+
+.jsj-toast {
+  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+  background: var(--gd-ink); color: var(--gd-bg);
+  padding: 8px 15px; border-radius: var(--gd-radius-sm);
+  font-size: 12.5px; z-index: 60;
+  opacity: 0; pointer-events: none; transition: opacity 0.18s;
+}
+.jsj-toast.show { opacity: 0.95; }
+/* ================= 侧边栏的请求方法标记 ================= */
+/* src/theme/DocSidebarItem/Link 往 <li> 上注入 .jsj-has-verb 和 .jsj-verb-xxx，
+   标记由 ::after 生成，pointer-events:none 让点击穿透——整行都是同一个 <a>，
+   点哪儿都能选中，选中态高亮也铺满整行。
+   选择器带上 li / a 标签名把特异性提到 0,3,2：infima 给 .menu__link 的内边距
+   是同级特异性，靠加载顺序取胜，光用类选择器会被它盖掉。 */
+
+li.jsj-has-verb {
+  position: relative;
+  --m-get: #2f7d55;
+  --m-post: #b26a12;
+  --m-put: #2f6bb0;
+  --m-patch: #7a4fbe;
+  --m-delete: #c1352c;
+}
+[data-theme='dark'] li.jsj-has-verb {
+  --m-get: #6fc79a;
+  --m-post: #e3ab5e;
+  --m-put: #7fb2ea;
+  --m-patch: #bb9bf0;
+  --m-delete: #ff8f85;
+}
+
+/* 给标记腾出右边的位置，长条目名会在这之前换行，不会压到标记上 */
+li.jsj-has-verb > a.menu__link { padding-right: 3.75rem; }
+
+li.jsj-has-verb::after {
+  position: absolute;
+  right: 0.75rem; top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font: 600 9.5px/1 var(--ifm-font-family-monospace);
+  letter-spacing: 0.06em;
+  opacity: 0.9;
+}
+li.jsj-verb-get::after { content: "GET"; color: var(--m-get); }
+li.jsj-verb-post::after { content: "POST"; color: var(--m-post); }
+li.jsj-verb-put::after { content: "PUT"; color: var(--m-put); }
+li.jsj-verb-patch::after { content: "PATCH"; color: var(--m-patch); }
+li.jsj-verb-delete::after { content: "DELETE"; color: var(--m-delete); }
+
+/* ================= URL 传参生成器 ================= */
+/* 来自独立站版 app.css 的「URL 传参生成器」一节。先前只抽了「在线调试」那几节，
+   漏了这一节，导致生成器里的字段行、添加按钮、结果块全无样式。 */
+/* ---- URL 传参生成器（在右侧面板里，沿用面板那套组件） ---- */
+
+.jsj-runner-root .urltool-row {
+  display: grid; grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr) 28px;
+  gap: 8px; margin-bottom: 8px; align-items: center;
+}/* 删除按钮平时不抢注意力，指到这一行才浮出来 */
+
+.jsj-runner-root .urltool-del {
+  width: 28px; height: 28px; padding: 0;
+  display: grid; place-items: center;
+  border: 0; border-radius: var(--gd-radius-sm);
+  background: transparent; color: var(--gd-ink-muted);
+  opacity: 0; cursor: pointer; transition: opacity 0.12s, color 0.12s, background 0.12s;
+}
+.jsj-runner-root .urltool-row:hover .urltool-del, .jsj-runner-root .urltool-del:focus-visible { opacity: 1; }
+.jsj-runner-root .urltool-del:hover { color: var(--gd-accent); background: var(--gd-accent-soft); }
+
+.jsj-runner-root .urltool-add {
+  width: 100%; padding: 7px;
+  border: 1px dashed var(--gd-border-strong); border-radius: var(--gd-radius-sm);
+  background: transparent; color: var(--gd-ink-muted);
+  font: 500 12.5px/1.5 var(--font-base); cursor: pointer;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+.jsj-runner-root .urltool-add:hover {
+  color: var(--gd-accent); border-color: var(--gd-accent);
+  background: var(--gd-accent-softer);
+}/* 结果：一个标签 + 一块内容，不再套代码块的外壳（免得「原始数据」和「json」两层标签重复） */
+
+
+.jsj-runner-root .urltool-res + .urltool-res { margin-top: 12px; }
+.jsj-runner-root .urltool-res-head {
+  display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px;
+}
+.jsj-runner-root .urltool-res-head > span {
+  color: var(--gd-ink-soft); font: 550 0.8125rem/1.5 var(--font-base);
+}
+.jsj-runner-root .urltool-res-note {
+  margin: -2px 0 6px;
+  color: var(--gd-ink-muted); font-size: 0.75rem; line-height: 1.5;
+}
+.jsj-runner-root .urltool-copy {
+  margin-left: auto; padding: 2px 7px;
+  border: 1px solid transparent; border-radius: var(--gd-radius-sm);
+  background: transparent; color: var(--gd-ink-muted);
+  font: 500 11.5px/1.6 var(--font-base); cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
+}
+.jsj-runner-root .urltool-res:hover .urltool-copy { border-color: var(--gd-border); }
+.jsj-runner-root .urltool-copy:hover { color: var(--gd-accent); border-color: var(--gd-accent); }
+.jsj-runner-root .urltool-res-body {
+  margin: 0; padding: 11px 13px;
+  border-radius: var(--gd-radius-sm);
+  background: var(--gd-bg);
+  font: 400 12.5px/1.6 var(--font-mono); color: var(--gd-ink);
+  white-space: pre-wrap; word-break: break-all;
+}/* 最终链接是这里的主角，给它一点强调 */
+
+.jsj-runner-root .urltool-res.primary .urltool-res-body {
+  border-left: 2px solid var(--gd-accent);
+}
+.jsj-runner-root .urltool-note {
+  margin-top: 12px;
+  color: var(--gd-ink-muted); font-size: 12.5px; line-height: 1.65;
+}
+.jsj-runner-root .urltool-out .urltool-note:first-child { margin-top: 0; }
+
+@media (max-width: 640px) {
+  .jsj-runner-root .urltool-row { grid-template-columns: minmax(0, 1fr) 28px; }
+  .jsj-runner-root .urltool-del { opacity: 1; }}.jsj-runner-root .verb.link { color: var(--m-put); }
+/* ================= 正文右上角的按钮组 ================= */
+/* 位置对齐面包屑那一行的右端。用绝对定位而不是把面包屑搬进 flex 容器——
+   那些节点由 React 管理，搬动会和 Docusaurus 的更新打架。 */
+
+article.jsj-has-actions { position: relative; }
+
+.jsj-doc-actions {
+  position: absolute;
+  top: 0; right: 0;
+  z-index: 2;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* 窄屏下面包屑可能换行，绝对定位会压上去——改成跟在正文流里靠右 */
+@media (max-width: 996px) {
+  .jsj-doc-actions { position: static; justify-content: flex-end; margin-bottom: 0.75rem; }
+}
+
+/* ================= 方法徽标 .verb ================= */
+/* 这几条原本在归档 app.css 的「左侧目录」一节里，我当初把那一节当站点骨架整节丢掉了，
+   但面板顶部栏的方法徽标（GET / LINK / PATCH…）也在用 .verb，
+   结果基础字号和全部配色都没了。 */
+
+.jsj-runner-root .verb {
+  flex: none;
+  font: 600 9.5px/1 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+.jsj-runner-root .verb.link { color: var(--m-put); }
+.jsj-runner-root .verb.get { color: var(--m-get); }
+.jsj-runner-root .verb.post { color: var(--m-post); }
+.jsj-runner-root .verb.put { color: var(--m-put); }
+.jsj-runner-root .verb.patch { color: var(--m-patch); }
+.jsj-runner-root .verb.delete { color: var(--m-delete); }
+
+/* ================= 挡掉 infima 漏进面板的基础样式 ================= */
+/* 独立站那版没有全局的 code / kbd 样式，所以 .runner-url 就是一段纯文本。
+   在 Docusaurus 里它是 <code>，infima 会给边框、底色和内边距——地址栏于是变成一个框，
+   内边距还吃掉横向空间，让 URL 提前被裁得只剩尾巴。这里按元素逐个挡回去。
+   放在文件末尾是刻意的：要盖过 infima，也要盖过上面那些通用规则。 */
+
+.jsj-runner-root code,
+.jsj-runner-root kbd {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  font-family: var(--font-mono);
+  vertical-align: baseline;
+}
+.jsj-runner-root .runner-url {
+  font: 400 13px/1.5 var(--font-mono);
+  color: var(--gd-ink);
+}
+/* 结果区里的代码块要保留自己的底色和圆角，别被上面那条挡掉 */
+.jsj-runner-root .code-block,
+.jsj-runner-root .urltool-res-body {
+  border-radius: var(--gd-radius-sm);
+}

@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: POST
+sidebar_label: 上传附件
+---
+
 # v1 API 上传附件
 
 > API 使用者，可以通过本接口向表单的「上传文件」字段上传附件，上传成功后会返回附件的 `id`。随后在[新增数据](/api_v1/endpoints/create_form_entry)或[修改数据](/api_v1/endpoints/update_form_entry)时，将该 `id` 填入对应的附件字段即可完成附件提交。

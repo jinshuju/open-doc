@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: GET
+sidebar_label: 获取表单数据列表
+---
+
 # v1 API 获取表单数据列表
 
 > API使用者，可以通过本接口，获取自己单个表单的数据列表

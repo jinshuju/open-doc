@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: POST
+sidebar_label: 创建文件夹
+---
+
 # v1 API 创建文件夹
 
 > API使用者，可以通过本接口，创建一个新的文件夹

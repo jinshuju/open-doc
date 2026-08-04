@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: DELETE
+sidebar_label: 删除表单视图
+---
+
 # v1 API 删除表单视图
 
 > API 使用者，可以通过本接口，删除指定表单下的自定义视图

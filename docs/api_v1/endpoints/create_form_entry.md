@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: POST
+sidebar_label: 新增单条数据
+---
+
 # v1 API 新增单条数据
 
 > API使用者，可以通过本接口，向自己创建的表单中新增一条数据

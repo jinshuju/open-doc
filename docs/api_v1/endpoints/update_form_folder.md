@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: PATCH
+sidebar_label: 移动表单到/移出文件夹
+---
+
 # v1 API 移动表单到/移出文件夹
 
 > API使用者，可以通过本接口，把表单放入某个文件夹，或将表单从文件夹中移出

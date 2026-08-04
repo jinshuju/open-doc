@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: POST
+sidebar_label: 复制表单
+---
+
 # v1 API 复制表单
 
 > API使用者，可以通过本接口，复制一个已有表单为新表单（继承样式、主题、字段）

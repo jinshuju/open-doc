@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: GET
+sidebar_label: 获取企业账户成员列表
+---
+
 # v1 API 获取企业账户成员列表
 
 > API 使用者，可以通过本接口，列出当前企业账户下的成员（id / 姓名 / 邮箱 / 手机号 / 角色 / 状态）。常用于：把表单协作给某位成员前，先列出团队拿到目标 user id。

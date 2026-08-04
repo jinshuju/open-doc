@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: PATCH
+sidebar_label: 修改单条数据
+---
+
 # v1 API 修改单条数据
 
 > API使用者，可以通过本接口，修改一条数据
