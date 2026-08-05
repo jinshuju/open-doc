@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: PATCH
+sidebar_label: 更新表单视图
+---
+
 # v1 API 更新表单视图
 
 > API 使用者，可以通过本接口，更新指定表单下的视图配置

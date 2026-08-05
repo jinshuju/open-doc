@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: POST
+sidebar_label: 创建表单视图
+---
+
 # v1 API 创建表单视图
 
 > API 使用者，可以通过本接口，在指定表单下创建自定义视图

@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: PATCH
+sidebar_label: 编辑表单
+---
+
 # v1 API 编辑表单
 
 > API使用者，可以通过本接口，编辑现有表单的名称/描述/设置，以及增加、删除、更新字段

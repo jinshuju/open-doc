@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: DELETE
+sidebar_label: 删除单条数据
+---
+
 # v1 API 删除单条数据
 
 > API使用者，可以通过本接口，向自己创建的表单中删除一条数据

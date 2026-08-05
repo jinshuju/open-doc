@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: GET
+sidebar_label: 获取表单详细结构
+---
+
 # v1 API 获取表单详细结构
 
 > API使用者，可以通过本接口，获取单个表单的详细接口（字段 Schema）

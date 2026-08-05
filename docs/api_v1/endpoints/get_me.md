@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: GET
+sidebar_label: 获取当前用户信息
+---
+
 # v1 API 获取当前用户信息
 
 > API 使用者，可以通过本接口，查询当前调用方的用户信息（id / 姓名 / 邮箱 / 手机号 / 角色 / 所属企业账户）。

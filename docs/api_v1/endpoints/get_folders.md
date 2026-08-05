@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: GET
+sidebar_label: 获取文件夹列表
+---
+
 # v1 API 获取文件夹列表
 
 > API使用者，可以通过本接口，获取自己可管理的文件夹列表

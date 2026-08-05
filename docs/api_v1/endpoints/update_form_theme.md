@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: PATCH
+sidebar_label: 编辑表单主题
+---
+
 # v1 API 编辑表单主题
 
 > API使用者，可以通过本接口，修改表单的视觉主题（颜色、壁纸、header、字体、表单容器、提交按钮），或通过 AI 生成 header 图

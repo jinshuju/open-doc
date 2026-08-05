@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: GET
+sidebar_label: 获取单个表单视图
+---
+
 # v1 API 获取单个表单视图
 
 > API 使用者，可以通过本接口，获取指定表单下某个视图的详细信息

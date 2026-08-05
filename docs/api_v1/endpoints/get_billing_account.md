@@ -1,3 +1,9 @@
+---
+sidebar_custom_props:
+  method: GET
+sidebar_label: 获取当前企业账户信息
+---
+
 # v1 API 获取当前企业账户信息
 
 > API 使用者，可以通过本接口，查询当前凭证所属企业账户的套餐 / 月度用量 / 到期时间等信息。
