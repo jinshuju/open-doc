@@ -205,6 +205,9 @@ body.jsj-resize-row, body.jsj-resize-row * { cursor: row-resize !important; user
 
 .jsj-runner-root .runner-scroll {
   flex: 1; min-height: 0; overflow-y: auto;
+  /* 纵向 flex：让带 .rsec-grow 的那一节（JSON BODY）把剩余高度吃掉。
+     不设 min-height:0，各节仍不会被压到小于自身内容，装不下时照常出滚动条。 */
+  display: flex; flex-direction: column;
   margin: 14px 14px 0; padding: 14px 14px 20px;
   border: 1px solid var(--gd-border-strong); border-radius: var(--gd-radius-lg);
   background: var(--gd-bg); box-shadow: var(--gd-shadow-lw);
@@ -261,6 +264,11 @@ body.jsj-resize-row, body.jsj-resize-row * { cursor: row-resize !important; user
 
 .jsj-runner-root .rsec { padding: 0 0 4px; }
 .jsj-runner-root .rsec + .rsec { margin-top: 26px; }
+/* 唯一会长高的一节：屏幕高时铺满到滚动区底部，不留大片空白 */
+.jsj-runner-root .rsec-grow {
+  flex: 1 1 auto;
+  display: flex; flex-direction: column;
+}
 .jsj-runner-root .rsec-head {
   display: flex; align-items: center; flex-wrap: wrap; gap: 8px 9px;
   margin-bottom: 12px;
@@ -397,8 +405,17 @@ body.jsj-resize-row, body.jsj-resize-row * { cursor: row-resize !important; user
 .jsj-runner-root .jsed-body {
   display: flex; min-height: 0;
   height: 270px;
-  background: var(--gd-bg);
+  /* 编辑器整体是固定深色，这里必须跟着深色走：.jsed-hl 是 <pre>，
+     四角被 infima 的圆角切掉一点，露出的就是这一层的底色 */
+  background: var(--jsed-bg);
 }
+
+/* 跟着 .rsec-grow 一起长高：编辑器吃掉整节的剩余高度，270px 从固定高变成起始高。
+   这里刻意保留上面那条 height: 270px 不改成 auto——行号槽是 white-space: pre，
+   内容有多少行就有多高，height 一旦变成 auto，它的固有高度会顶穿滚动区。
+   留着定高当 flex-basis，既有下限又能被 flex-grow 撑开。 */
+.jsj-runner-root .rsec-grow .jsed { flex: 1 1 auto; }
+.jsj-runner-root .rsec-grow .jsed .jsed-body { flex: 1 1 auto; }
 .jsj-runner-root .jsed-gutter {
   flex: none; width: 48px;
   padding: 10px 8px 10px 0;
@@ -808,6 +825,13 @@ article.jsj-has-actions { position: relative; }
    在 Docusaurus 里它是 <code>，infima 会给边框、底色和内边距——地址栏于是变成一个框，
    内边距还吃掉横向空间，让 URL 提前被裁得只剩尾巴。这里按元素逐个挡回去。
    放在文件末尾是刻意的：要盖过 infima，也要盖过上面那些通用规则。 */
+
+/* .jsed-hl 是 <pre>，infima 会给它 --ifm-pre-border-radius（14px）。
+   它绝对定位铺满 .jsed-code，圆角一切，四角就漏出下面 .jsed-body 的底色——
+   就是那四个白色小圆角。这里把圆角和 infima 的内边距一起清掉。 */
+.jsj-runner-root .jsed-hl {
+  border-radius: 0;
+}
 
 .jsj-runner-root code,
 .jsj-runner-root kbd {

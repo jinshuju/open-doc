@@ -80,7 +80,7 @@
   --ifm-link-hover-decoration: none;
 
   /* 布局 */
-  --ifm-navbar-padding-horizontal: 1.5rem;
+  --ifm-navbar-padding-horizontal: 1.625rem;
   --ifm-navbar-shadow: none;
   --doc-sidebar-width: 17.5rem;
   --ifm-container-width-xl: 1440px;
@@ -205,9 +205,17 @@ strong {
   -webkit-backdrop-filter: blur(10px);
 }
 
+/*
+ * 导航栏跟着页面骨架走，不再自己居中。
+ * 下面的侧边栏 / 正文 / 目录都是整宽布局（侧边栏贴左边、目录贴右边），
+ * 一旦这里套上 --ifm-container-width-xl 居中，宽屏下导航栏就会比页面窄一圈，
+ * 左边的站名和右边的入口都往里缩，和侧边栏、目录对不齐。
+ * 横向内边距用 26px = 侧边栏 .menu 的 14px + .menu__link 的 12px，
+ * 正好让站名的左边缘落在侧边栏条目文字上，右端也和目录的右边距齐平。
+ */
 .navbar__inner {
-  max-width: var(--ifm-container-width-xl);
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
 }
 
 .navbar__brand {

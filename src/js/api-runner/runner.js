@@ -206,8 +206,10 @@ function gotoDoc(path) {
         '<div class="hint-box">该接口是文件上传（multipart/form-data），在线调试暂不支持；' +
         "正文「示例代码」一节给出了可直接使用的写法。</div></div>";
     } else if (["POST", "PUT", "PATCH"].indexOf(a.method) !== -1 || (a.alsoMethods || []).length) {
-      // JSON 编辑器的状态和工具按钮都提到分区标题行上，编辑器本身只剩行号 + 代码
-      html += '<div class="rsec"><div class="rsec-head">' +
+      // JSON 编辑器的状态和工具按钮都提到分区标题行上，编辑器本身只剩行号 + 代码。
+      // rsec-grow：这一节是滚动区里唯一「能长高」的，面板高时由它把剩余空间吃掉，
+      // 免得编辑器停在固定高度、下面拖一大片空白（样式见 api-runner.css）。
+      html += '<div class="rsec rsec-grow"><div class="rsec-head">' +
         '<span class="rsec-tag">BODY</span>' +
         '<span class="jsed-status" id="jsj-jsed-status"></span>' +
         '<span class="grow"></span>' +
