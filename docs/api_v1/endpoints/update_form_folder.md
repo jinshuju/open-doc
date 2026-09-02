@@ -10,11 +10,11 @@ sidebar_label: 移动表单到/移出文件夹
 
 | 功能 | 免费版 | 专业版/专业增强版 | 企业基础版 | 企业协作版 | 企业高级版 |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| 移动表单到文件夹 | | | ✔️ | ✔️ | ✔️ |
+| 移动表单到文件夹 | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
 
 ## 认证方式
 
-[V1 Basic 认证方式](/api_v1/authentication)
+[V1 Bearer 认证方式](/api_v1/authentication)
 
 ## headers 设置
 
@@ -22,7 +22,7 @@ sidebar_label: 移动表单到/移出文件夹
 
 * `Content-Type: application/json`
 * `Accept: application/json`
-* `Authorization: 放入上一步骤生成的CODE`
+* `Authorization: Bearer YOUR_ACCESS_TOKEN`
 
 ## 接口说明
 
@@ -93,7 +93,7 @@ PATCH https://jinshuju.net/api/v1/forms/$FORM_TOKEN/folder
 
 Content-Type: application/json
 Accept: application/json
-Authorization: Basic BASE_64_ENCODED_CREDENTIALS
+Authorization: Bearer YOUR_ACCESS_TOKEN
 
 {"folder_token": "aZ9bQ3"}
 ```
@@ -104,7 +104,7 @@ PATCH https://jinshuju.net/api/v1/forms/$FORM_TOKEN/folder
 
 Content-Type: application/json
 Accept: application/json
-Authorization: Basic BASE_64_ENCODED_CREDENTIALS
+Authorization: Bearer YOUR_ACCESS_TOKEN
 
 {"folder_token": null}
 ```
@@ -114,21 +114,20 @@ Authorization: Basic BASE_64_ENCODED_CREDENTIALS
 ```python
 import requests
 
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 form_token = 'YOUR_FORM_TOKEN'
 
 # 放入
 requests.patch(
     f'https://jinshuju.net/api/v1/forms/{form_token}/folder',
-    auth=(api_key, api_secret),
+    headers={'Authorization': f'Bearer {access_token}'},
     json={"folder_token": "aZ9bQ3"}
 )
 
 # 移出
 requests.patch(
     f'https://jinshuju.net/api/v1/forms/{form_token}/folder',
-    auth=(api_key, api_secret),
+    headers={'Authorization': f'Bearer {access_token}'},
     json={"folder_token": None}
 )
 ```
@@ -142,19 +141,18 @@ require 'json'
 
 form_token = 'YOUR_FORM_TOKEN'
 uri = URI.parse("https://jinshuju.net/api/v1/forms/#{form_token}/folder")
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 
 # 放入
 request = Net::HTTP::Patch.new(uri, 'Content-Type' => 'application/json')
-request.basic_auth(api_key, api_secret)
+request['Authorization'] = "Bearer #{access_token}"
 request.body = { folder_token: 'aZ9bQ3' }.to_json
 
 Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
 
 # 移出
 request = Net::HTTP::Patch.new(uri, 'Content-Type' => 'application/json')
-request.basic_auth(api_key, api_secret)
+request['Authorization'] = "Bearer #{access_token}"
 request.body = { folder_token: nil }.to_json
 
 Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }

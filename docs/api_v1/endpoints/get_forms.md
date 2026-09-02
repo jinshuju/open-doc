@@ -10,11 +10,11 @@ sidebar_label: 获取表单列表
 
 | 功能 | 免费版 | 专业版/专业增强版 | 企业基础版 | 企业协作版 | 企业高级版 |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| 获取表单列表 | | | ✔️ | ✔️ | ✔️ |
+| 获取表单列表 | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
 
 ## 认证方式
 
-[V1 Basic 认证方式](/api_v1/authentication)
+[V1 Bearer 认证方式](/api_v1/authentication)
 
 ## headers 设置
 
@@ -22,7 +22,7 @@ sidebar_label: 获取表单列表
 
 * `Content-Type: application/json`
 * `Accept: application/json`
-* `Authorization: 放入上一步骤生成的CODE`
+* `Authorization: Bearer YOUR_ACCESS_TOKEN`
 
 ## 接口说明
 
@@ -100,14 +100,9 @@ GET https://jinshuju.net/api/v1/forms?next=60cc514761936ced06123456
 ### 伪代码
 
 ```
-api_key = "YOUR_API_KEY"
-api_secret = "YOUR_API_SECRET"
+access_token = "YOUR_ACCESS_TOKEN"
 
-credentials = api_key + ":" + api_secret
-
-encoded_creadentials = base64_encode(credentials)
-
-auth_header_payload = "Basic " + encoded_creadentials
+auth_header_payload = "Bearer " + access_token
 
 headers = {"Authorization": auth_header_payload}
 
@@ -121,7 +116,7 @@ GET https://jinshuju.net/api/v1/forms
 
 Content-Type: application/json
 Accept: application/json
-Authorization: Basic BASE_64_ENCODED_CREDENTIALS
+Authorization: Bearer YOUR_ACCESS_TOKEN
 ```
 
 ### Postman
@@ -129,10 +124,9 @@ Authorization: Basic BASE_64_ENCODED_CREDENTIALS
 ```
 GET https://jinshuju.net/api/v1/forms
 
-authorization 选择 `Basic Auth`
+authorization 选择 `Bearer Token`
 
-Username 输入 API Key
-Password 输入 API Secret
+Token 输入 Access Token
 ```
 
 ### Java
@@ -145,12 +139,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Base64;
 
 public class GetFormsService {
 
-    public void run(String apiKey, String apiSecret) throws IOException {
-        String authHeaderPayload = getAuthHeaderPayload(apiKey, apiSecret);
+    public void run(String accessToken) throws IOException {
+        String authHeaderPayload = "Bearer " + accessToken;
 
         BufferedReader httpResponseReader = null;
         try {
@@ -174,13 +167,6 @@ public class GetFormsService {
         }
     }
 
-    private String getAuthHeaderPayload(String apiKey, String apiSecret) {
-        String credentials = apiKey + ":" + apiSecret;
-
-        String base64EncodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes());
-        return "Basic " + base64EncodedCredentials;
-    }
-
 }
 ```
 
@@ -189,12 +175,11 @@ public class GetFormsService {
 ```python
 import requests
 
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 
 api_endpoint_url = 'https://jinshuju.net/api/v1/forms'
 
-response = requests.get(api_endpoint_url, auth = (api_key, api_secret))
+response = requests.get(api_endpoint_url, headers = {'Authorization': f'Bearer {access_token}'})
 
 print(response.text)
 ```
@@ -206,11 +191,10 @@ require 'net/http'
 require 'uri'
 
 uri = URI.parse('https://jinshuju.net/api/v1/forms')
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 
 request = Net::HTTP::Get.new(uri)
-request.basic_auth(api_key, api_secret)
+request['Authorization'] = "Bearer #{access_token}"
 
 response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
   http.request(request)

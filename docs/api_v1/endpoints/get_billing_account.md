@@ -10,11 +10,11 @@ sidebar_label: 获取当前企业账户信息
 
 | 功能 | 免费版 | 专业版/专业增强版 | 企业基础版 | 企业协作版 | 企业高级版 |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| 获取企业账户信息 | | | ✔️ | ✔️ | ✔️ |
+| 获取企业账户信息 | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
 
 ## 认证方式
 
-[V1 Basic 认证方式](/api_v1/authentication)
+[V1 Bearer 认证方式](/api_v1/authentication)
 
 ## headers 设置
 
@@ -22,7 +22,7 @@ sidebar_label: 获取当前企业账户信息
 
 * `Content-Type: application/json`
 * `Accept: application/json`
-* `Authorization: 放入上一步骤生成的CODE`
+* `Authorization: Bearer YOUR_ACCESS_TOKEN`
 
 ## 接口说明
 
@@ -133,7 +133,7 @@ GET https://jinshuju.net/api/v1/billing_account
 
 Content-Type: application/json
 Accept: application/json
-Authorization: Basic BASE_64_ENCODED_CREDENTIALS
+Authorization: Bearer YOUR_ACCESS_TOKEN
 ```
 
 ### Python
@@ -141,12 +141,11 @@ Authorization: Basic BASE_64_ENCODED_CREDENTIALS
 ```python
 import requests
 
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 
 response = requests.get(
     'https://jinshuju.net/api/v1/billing_account',
-    auth=(api_key, api_secret)
+    headers={'Authorization': f'Bearer {access_token}'}
 )
 
 print(response.text)
@@ -159,11 +158,10 @@ require 'net/http'
 require 'uri'
 
 uri = URI.parse('https://jinshuju.net/api/v1/billing_account')
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 
 request = Net::HTTP::Get.new(uri)
-request.basic_auth(api_key, api_secret)
+request['Authorization'] = "Bearer #{access_token}"
 
 response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
   http.request(request)

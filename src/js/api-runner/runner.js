@@ -9,7 +9,7 @@
  *                          （见 helpers.js）
  *   3. gotoDoc             原来走自己的 hash 路由，现在交给 Docusaurus 的路由
  *
- * 其余——怎么拼 Basic 认证、怎么生成八种语言的可运行片段、JSON 怎么按行列报错、
+ * 其余——怎么拼 Bearer 认证、怎么生成八种语言的可运行片段、JSON 怎么按行列报错、
  * 请求怎么超时和取消——都是纯逻辑，和谁拥有页面无关，一行没动。
  *
  * 凭据只留在这个模块的内存里：不写 localStorage / sessionStorage，
@@ -35,7 +35,7 @@ const LANGS = [
 ];
 
 const state = {
-  creds: { key: "", secret: "" },
+  creds: { token: "" },
   tab: "result",
   lang: "curl",
   response: null,
@@ -98,8 +98,7 @@ function gotoDoc(path) {
   function requestReadiness() {
     var a = api();
     var issues = [];
-    if (!state.creds.key.trim()) issues.push("缺少 API_KEY");
-    if (!state.creds.secret.trim()) issues.push("缺少 API_SECRET");
+    if (!state.creds.token.trim()) issues.push("缺少 ACCESS_TOKEN");
 
     if (a) {
       (a.pathParams || []).forEach(function (p) {
@@ -166,13 +165,11 @@ function gotoDoc(path) {
     var html = "";
 
     html += '<div class="rsec"><div class="rsec-head">' +
-      '<span class="rsec-tag">AUTH</span><span class="rsec-name">Basic 认证</span></div>' +
-      '<div class="rrow"><label for="in-key">API_KEY<span class="star">*</span></label>' +
-      '<input class="ipt" id="jsj-in-key" type="text" autocomplete="off" placeholder="你的 API Key"></div>' +
-      '<div class="rrow"><label for="in-secret">API_SECRET<span class="star">*</span></label>' +
-      '<input class="ipt" id="jsj-in-secret" type="password" autocomplete="off" placeholder="你的 API Secret"></div>' +
+      '<span class="rsec-tag">AUTH</span><span class="rsec-name">Bearer 认证</span></div>' +
+      '<div class="rrow"><label for="in-token">ACCESS_TOKEN<span class="star">*</span></label>' +
+      '<input class="ipt" id="jsj-in-token" type="password" autocomplete="off" placeholder="你的 Access Token"></div>' +
       '<div class="cred-links">在 <a href="https://next.jinshuju.net/profile/api" target="_blank" rel="noopener">个人中心 → API</a>' +
-      ' 或 <a href="https://next.jinshuju.net/system/api_licence" target="_blank" rel="noopener">系统设置 → 企业 API</a> 获取</div></div>';
+      ' 或 <a href="https://next.jinshuju.net/system/api_licence" target="_blank" rel="noopener">系统设置 → 企业 API</a> 创建</div></div>';
 
     if (a.pathParams.length) {
       html += '<div class="rsec"><div class="rsec-head">' +
@@ -221,15 +218,13 @@ function gotoDoc(path) {
 
     wrap.innerHTML = html;
 
-    var k = el("in-key"), s = el("in-secret");
-    k.value = state.creds.key; s.value = state.creds.secret;
-    function onCred() {
+    var tokenInput = el("in-token");
+    tokenInput.value = state.creds.token;
+    tokenInput.addEventListener("input", function () {
       // 凭据只留在内存里：刷新或重新打开都不该还在（见 init 里的清理）
-      state.creds.key = k.value; state.creds.secret = s.value;
+      state.creds.token = tokenInput.value;
       if (state.tab === "code") renderOut();
-    }
-    k.addEventListener("input", onCred);
-    s.addEventListener("input", onCred);
+    });
 
     wrap.querySelectorAll("[data-pp],[data-qp]").forEach(function (n) {
       n.addEventListener("input", function () { syncUrl(); if (state.tab === "code") renderOut(); });
@@ -460,11 +455,8 @@ function gotoDoc(path) {
 
   /* ---------- 发送 ---------- */
 
-  function basic(key, secret) {
-    var bytes = new TextEncoder().encode(key + ":" + secret);
-    var bin = "";
-    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-    return "Basic " + btoa(bin);
+  function bearer(token) {
+    return "Bearer " + token;
   }
 
   // 金数据 API 开放了 CORS（Access-Control-Allow-Origin: *，允许 authorization 头），
@@ -473,7 +465,7 @@ function gotoDoc(path) {
   function sendDirect(method, path, body, signal) {
     var started = Date.now();
     var headers = {
-      Authorization: basic(state.creds.key, state.creds.secret),
+      Authorization: bearer(state.creds.token),
       Accept: "application/json",
       "Content-Type": "application/json",
     };
@@ -498,7 +490,7 @@ function gotoDoc(path) {
       signal: signal,
       body: JSON.stringify({
         method: method, path: path,
-        apiKey: state.creds.key, apiSecret: state.creds.secret,
+        accessToken: state.creds.token,
         body: body || undefined,
       }),
     }).then(function (r) { return r.json(); });
@@ -576,13 +568,11 @@ function gotoDoc(path) {
   function snippet(lang) {
     if (!api()) return "";
     var url = API_BASE + builtPath();
-    var key = state.creds.key;
-    var secret = state.creds.secret;
     var body = bodyText();
     var compact = null;
     if (body) { try { compact = JSON.stringify(JSON.parse(body)); } catch (e) { compact = null; } }
     var m = curMethod();
-    var authorization = basic(key, secret);
+    var authorization = bearer(state.creds.token);
 
     switch (lang) {
       case "curl":

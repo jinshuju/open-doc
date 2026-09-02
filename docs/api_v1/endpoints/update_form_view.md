@@ -10,11 +10,11 @@ sidebar_label: 更新表单视图
 
 | 功能 | 免费版 | 专业版/专业增强版 | 企业基础版 | 企业协作版 | 企业高级版 |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| 更新表单视图 | | | ✔️ | ✔️ | ✔️ |
+| 更新表单视图 | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
 
 ## 认证方式
 
-[V1 Basic 认证方式](/api_v1/authentication)
+[V1 Bearer 认证方式](/api_v1/authentication)
 
 ## headers 设置
 
@@ -117,7 +117,7 @@ PATCH https://jinshuju.net/api/v1/forms/$FORM_TOKEN/views/$VIEW_TOKEN
 
 Content-Type: application/json
 Accept: application/json
-Authorization: Basic BASE_64_ENCODED_CREDENTIALS
+Authorization: Bearer YOUR_ACCESS_TOKEN
 
 {
   "name": "重点客户",
@@ -130,8 +130,7 @@ Authorization: Basic BASE_64_ENCODED_CREDENTIALS
 ```python
 import requests
 
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 form_token = 'YOUR_FORM_TOKEN'
 view_token = 'YOUR_VIEW_TOKEN'
 
@@ -142,7 +141,7 @@ payload = {
 
 response = requests.patch(
     f'https://jinshuju.net/api/v1/forms/{form_token}/views/{view_token}',
-    auth=(api_key, api_secret),
+    headers={'Authorization': f'Bearer {access_token}'},
     json=payload
 )
 

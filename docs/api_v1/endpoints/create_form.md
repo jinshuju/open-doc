@@ -10,11 +10,11 @@ sidebar_label: 创建表单
 
 | 功能 | 免费版 | 专业版/专业增强版 | 企业基础版 | 企业协作版 | 企业高级版 |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| 创建表单 | | | ✔️ | ✔️ | ✔️ |
+| 创建表单 | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
 
 ## 认证方式
 
-[V1 Basic 认证方式](/api_v1/authentication)
+[V1 Bearer 认证方式](/api_v1/authentication)
 
 ## headers 设置
 
@@ -22,7 +22,7 @@ sidebar_label: 创建表单
 
 * `Content-Type: application/json`
 * `Accept: application/json`
-* `Authorization: 放入上一步骤生成的CODE`
+* `Authorization: Bearer YOUR_ACCESS_TOKEN`
 
 ## 接口说明
 
@@ -201,12 +201,9 @@ POST https://jinshuju.net/api/v1/forms
 ### 伪代码
 
 ```
-api_key = "YOUR_API_KEY"
-api_secret = "YOUR_API_SECRET"
+access_token = "YOUR_ACCESS_TOKEN"
 
-credentials = api_key + ":" + api_secret
-encoded_credentials = base64_encode(credentials)
-auth_header_payload = "Basic " + encoded_credentials
+auth_header_payload = "Bearer " + access_token
 headers = {"Authorization": auth_header_payload, "Content-Type": "application/json"}
 
 body = {
@@ -224,7 +221,7 @@ POST https://jinshuju.net/api/v1/forms
 
 Content-Type: application/json
 Accept: application/json
-Authorization: Basic BASE_64_ENCODED_CREDENTIALS
+Authorization: Bearer YOUR_ACCESS_TOKEN
 
 {
   "name": "产品需求调研表",
@@ -237,9 +234,8 @@ Authorization: Basic BASE_64_ENCODED_CREDENTIALS
 ```
 POST https://jinshuju.net/api/v1/forms
 
-authorization 选择 `Basic Auth`
-Username 输入 API Key
-Password 输入 API Secret
+authorization 选择 `Bearer Token`
+Token 输入 Access Token
 
 Body (raw, JSON):
 {
@@ -253,8 +249,7 @@ Body (raw, JSON):
 ```python
 import requests
 
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 
 payload = {
     "name": "产品需求调研表",
@@ -263,7 +258,7 @@ payload = {
 
 response = requests.post(
     'https://jinshuju.net/api/v1/forms',
-    auth=(api_key, api_secret),
+    headers={'Authorization': f'Bearer {access_token}'},
     json=payload
 )
 
@@ -278,8 +273,7 @@ require 'uri'
 require 'json'
 
 uri = URI.parse('https://jinshuju.net/api/v1/forms')
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 
 payload = {
   name: '产品需求调研表',
@@ -287,7 +281,7 @@ payload = {
 }
 
 request = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
-request.basic_auth(api_key, api_secret)
+request['Authorization'] = "Bearer #{access_token}"
 request.body = payload.to_json
 
 response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
