@@ -10,11 +10,11 @@ sidebar_label: 上传附件
 
 | 功能 | 免费版 | 专业版/专业增强版 | 企业基础版 | 企业协作版 | 企业高级版 |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| 上传附件 | | | ✔️ | ✔️ | ✔️ |
+| 上传附件 | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
 
 ## 认证方式
 
-[V1 Basic 认证方式](/api_v1/authentication)
+[V1 Bearer 认证方式](/api_v1/authentication)
 
 ## headers 设置
 
@@ -103,7 +103,7 @@ file=@/path/to/report.pdf
 
 ```bash
 curl -X POST "https://jinshuju.net/api/v1/forms/$FORM_TOKEN/entry_attachments" \
-  -u "$API_KEY:$API_SECRET" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -F "field_api_code=field_1" \
   -F "file=@/path/to/report.pdf"
 ```
@@ -113,8 +113,7 @@ curl -X POST "https://jinshuju.net/api/v1/forms/$FORM_TOKEN/entry_attachments" \
 ```python
 import requests
 
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 form_token = 'YOUR_FORM_TOKEN'
 
 url = f'https://jinshuju.net/api/v1/forms/{form_token}/entry_attachments'
@@ -122,7 +121,7 @@ url = f'https://jinshuju.net/api/v1/forms/{form_token}/entry_attachments'
 with open('/path/to/report.pdf', 'rb') as f:
     response = requests.post(
         url,
-        auth=(api_key, api_secret),
+        headers={'Authorization': f'Bearer {access_token}'},
         data={'field_api_code': 'field_1'},
         files={'file': f}
     )
@@ -131,7 +130,7 @@ attachment_id = response.json()['id']
 
 # 再用 attachment_id 新增数据
 entry_url = f'https://jinshuju.net/api/v1/forms/{form_token}/entries'
-requests.post(entry_url, auth=(api_key, api_secret), json={'field_1': [attachment_id]})
+requests.post(entry_url, headers={'Authorization': f'Bearer {access_token}'}, json={'field_1': [attachment_id]})
 ```
 
 ### Ruby
@@ -141,14 +140,13 @@ require 'net/http'
 require 'uri'
 require 'json'
 
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 form_token = 'YOUR_FORM_TOKEN'
 
 uri = URI.parse("https://jinshuju.net/api/v1/forms/#{form_token}/entry_attachments")
 
 request = Net::HTTP::Post.new(uri)
-request.basic_auth(api_key, api_secret)
+request['Authorization'] = "Bearer #{access_token}"
 form_data = [
   ['field_api_code', 'field_1'],
   ['file', File.open('/path/to/report.pdf')]

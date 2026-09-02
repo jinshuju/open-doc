@@ -10,11 +10,11 @@ sidebar_label: 修改单条数据
 
 | 功能 | 免费版 | 专业版/专业增强版 | 企业基础版 | 企业协作版 | 企业高级版 |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| 修改单条数据 | | | ✔️ | ✔️ | ✔️ |
+| 修改单条数据 | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
 
 ## 认证方式
 
-[V1 Basic 认证方式](/api_v1/authentication)
+[V1 Bearer 认证方式](/api_v1/authentication)
 
 ## headers 设置
 
@@ -22,7 +22,7 @@ sidebar_label: 修改单条数据
 
 * `Content-Type: application/json`
 * `Accept: application/json`
-* `Authorization: 放入上一步骤生成的CODE`
+* `Authorization: Bearer YOUR_ACCESS_TOKEN`
 
 ## 接口说明
 
@@ -102,14 +102,9 @@ PATCH/POST/PUT https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries/SERIAL_NUMBE
 ### 伪代码
 
 ```
-api_key = "YOUR_API_KEY"
-api_secret = "YOUR_API_SECRET"
+access_token = "YOUR_ACCESS_TOKEN"
 
-credentials = api_key + ":" + api_secret
-
-encoded_creadentials = base64_encode(credentials)
-
-auth_header_payload = "Basic " + encoded_creadentials
+auth_header_payload = "Bearer " + access_token
 
 headers = {"Authorization": auth_header_payload}
 
@@ -128,7 +123,7 @@ POST https://jinshuju.net/api/v1/forms/$FORM_TOKEN/entries/$ENTRY_SERIAL_NUMBER
 
 Content-Type: application/json
 Accept: application/json
-Authorization: Basic BASE_64_ENCODED_CREDENTIALS
+Authorization: Bearer YOUR_ACCESS_TOKEN
 
 {"field_1": "value"}
 ```
@@ -138,10 +133,9 @@ Authorization: Basic BASE_64_ENCODED_CREDENTIALS
 ```
 POST https://jinshuju.net/api/v1/forms/$FORM_TOKEN/entries/$ENTRY_SERIAL_NUMBER
 
-authorization 选择 `Basic Auth`
+authorization 选择 `Bearer Token`
 
-Username 输入 API Key
-Password 输入 API Secret
+Token 输入 Access Token
 
 Body:
 {"field_1": "value"}
@@ -155,12 +149,11 @@ package net.jinshuju.v1api.demo;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Base64;
 
 public class UpdateFormEntryWithMergeService {
 
-    public void run(String apiKey, String apiSecret, String formToken, int entrySerialNumber) throws IOException {
-        String authHeaderPayload = getAuthHeaderPayload(apiKey, apiSecret);
+    public void run(String accessToken, String formToken, int entrySerialNumber) throws IOException {
+        String authHeaderPayload = "Bearer " + accessToken;
 
         BufferedReader httpResponseReader = null;
         try {
@@ -195,13 +188,6 @@ public class UpdateFormEntryWithMergeService {
             }
         }
     }
-
-    private String getAuthHeaderPayload(String apiKey, String apiSecret) {
-        String credentials = apiKey + ":" + apiSecret;
-
-        String base64EncodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes());
-        return "Basic " + base64EncodedCredentials;
-    }
 }
 ```
 
@@ -210,8 +196,7 @@ public class UpdateFormEntryWithMergeService {
 ```python
 import requests
 
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 
 form_token = 'YOUR_FORM_TOKEN'
 entry_serial_number = 79
@@ -220,7 +205,7 @@ entry_json = {"field_1": "a new value"}
 
 api_endpoint_url = 'https://jinshuju.net/api/v1/forms/' + form_token + '/entries/' + str(entry_serial_number)
 
-response = requests.post(api_endpoint_url, auth = (api_key, api_secret), json = entry_json)
+response = requests.post(api_endpoint_url, headers = {'Authorization': f'Bearer {access_token}'}, json = entry_json)
 
 print(response.text)
 ```
@@ -236,13 +221,12 @@ form_token = 'YOUR_FORM_TOKEN'
 entry_serial_number = 79
 
 uri = URI.parse("https://jinshuju.net/api/v1/forms/#{form_token}/entries/#{entry_serial_number}")
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 
 entry_json = {field_1: 'Some New Value'}
 
 request = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
-request.basic_auth(api_key, api_secret)
+request['Authorization'] = "Bearer #{access_token}"
 request.body = entry_json.to_json
 
 response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
@@ -257,14 +241,9 @@ puts(response.body)
 ### 伪代码
 
 ```
-api_key = "YOUR_API_KEY"
-api_secret = "YOUR_API_SECRET"
+access_token = "YOUR_ACCESS_TOKEN"
 
-credentials = api_key + ":" + api_secret
-
-encoded_creadentials = base64_encode(credentials)
-
-auth_header_payload = "Basic " + encoded_creadentials
+auth_header_payload = "Bearer " + access_token
 
 headers = {"Authorization": auth_header_payload}
 
@@ -281,7 +260,7 @@ http.put("https://jinshuju.net/api/v1/forms/${form_token}/entries/${entry_serial
 ```http
 PUT https://jinshuju.net/api/v1/forms/$FORM_TOKEN/entries/$ENTRY_SERIAL_NUMBER
 
-Authorization: Basic BASE_64_ENCODED_CREDENTIALS
+Authorization: Bearer YOUR_ACCESS_TOKEN
 
 {"field_1": "new value", "field_2": "another new value"}
 ```
@@ -291,10 +270,9 @@ Authorization: Basic BASE_64_ENCODED_CREDENTIALS
 ```
 PUT https://jinshuju.net/api/v1/forms/$FORM_TOKEN/entries/$ENTRY_SERIAL_NUMBER
 
-authorization 选择 `Basic Auth`
+authorization 选择 `Bearer Token`
 
-Username 输入 API Key
-Password 输入 API Secret
+Token 输入 Access Token
 
 Body:
 {"field_1": "new value", "field_2": "another new value"}
@@ -308,12 +286,11 @@ package net.jinshuju.v1api.demo;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Base64;
 
 public class UpdateFormEntryWithReplaceAllService {
 
-    public void run(String apiKey, String apiSecret, String formToken, int entrySerialNumber) throws IOException {
-        String authHeaderPayload = getAuthHeaderPayload(apiKey, apiSecret);
+    public void run(String accessToken, String formToken, int entrySerialNumber) throws IOException {
+        String authHeaderPayload = "Bearer " + accessToken;
 
         BufferedReader httpResponseReader = null;
         try {
@@ -348,13 +325,6 @@ public class UpdateFormEntryWithReplaceAllService {
             }
         }
     }
-
-    private String getAuthHeaderPayload(String apiKey, String apiSecret) {
-        String credentials = apiKey + ":" + apiSecret;
-
-        String base64EncodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes());
-        return "Basic " + base64EncodedCredentials;
-    }
 }
 ```
 
@@ -363,8 +333,7 @@ public class UpdateFormEntryWithReplaceAllService {
 ```python
 import requests
 
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 
 form_token = 'YOUR_FORM_TOKEN'
 entry_serial_number = 79
@@ -373,7 +342,7 @@ entry_json = {"field_1": "a new value"}
 
 api_endpoint_url = 'https://jinshuju.net/api/v1/forms/' + form_token + '/entries/' + str(entry_serial_number)
 
-response = requests.put(api_endpoint_url, auth = (api_key, api_secret), json = entry_json)
+response = requests.put(api_endpoint_url, headers = {'Authorization': f'Bearer {access_token}'}, json = entry_json)
 
 print(response.text)
 ```
@@ -389,13 +358,12 @@ form_token = 'YOUR_FORM_TOKEN'
 entry_serial_number = 79
 
 uri = URI.parse("https://jinshuju.net/api/v1/forms/#{form_token}/entries/#{entry_serial_number}")
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 
 entry_json = {field_1: 'Some New Value'}
 
 request = Net::HTTP::Put.new(uri, 'Content-Type' => 'application/json')
-request.basic_auth(api_key, api_secret)
+request['Authorization'] = "Bearer #{access_token}"
 request.body = entry_json.to_json
 
 response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|

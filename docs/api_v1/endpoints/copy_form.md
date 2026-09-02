@@ -10,11 +10,11 @@ sidebar_label: 复制表单
 
 | 功能 | 免费版 | 专业版/专业增强版 | 企业基础版 | 企业协作版 | 企业高级版 |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| 复制表单 | | | ✔️ | ✔️ | ✔️ |
+| 复制表单 | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
 
 ## 认证方式
 
-[V1 Basic 认证方式](/api_v1/authentication)
+[V1 Bearer 认证方式](/api_v1/authentication)
 
 ## headers 设置
 
@@ -22,7 +22,7 @@ sidebar_label: 复制表单
 
 * `Content-Type: application/json`
 * `Accept: application/json`
-* `Authorization: 放入上一步骤生成的CODE`
+* `Authorization: Bearer YOUR_ACCESS_TOKEN`
 
 ## 接口说明
 
@@ -73,7 +73,7 @@ POST https://jinshuju.net/api/v1/forms/$FORM_TOKEN/copy
 
 Content-Type: application/json
 Accept: application/json
-Authorization: Basic BASE_64_ENCODED_CREDENTIALS
+Authorization: Bearer YOUR_ACCESS_TOKEN
 
 {
   "name": "产品需求调研表（副本）",
@@ -86,13 +86,12 @@ Authorization: Basic BASE_64_ENCODED_CREDENTIALS
 ```python
 import requests
 
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 form_token = 'YOUR_FORM_TOKEN'
 
 response = requests.post(
     f'https://jinshuju.net/api/v1/forms/{form_token}/copy',
-    auth=(api_key, api_secret),
+    headers={'Authorization': f'Bearer {access_token}'},
     json={"name": "产品需求调研表（副本）", "folder_token": "aZ9bQ3"}
 )
 
@@ -108,11 +107,10 @@ require 'json'
 
 form_token = 'YOUR_FORM_TOKEN'
 uri = URI.parse("https://jinshuju.net/api/v1/forms/#{form_token}/copy")
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 
 request = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
-request.basic_auth(api_key, api_secret)
+request['Authorization'] = "Bearer #{access_token}"
 request.body = { name: '产品需求调研表（副本）', folder_token: 'aZ9bQ3' }.to_json
 
 response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|

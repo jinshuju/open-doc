@@ -12,9 +12,9 @@ title: 快速接入
 | 认证方式 | 适合场景 | 说明 |
 |---|---|---|
 | OAuth 2.0 | 推荐给支持 OAuth 的 AI 工具和第三方应用 | 标准 OAuth 2.0 授权流程，按 scope 控制权限，无需手动保存 API Key/Secret |
-| API Key/Secret | 企业内部集成或固定凭证场景 | 通过金数据后台获取 Key/Secret，使用 HTTP Basic 认证 |
+| API Key/Secret | 已有 Key/Secret 的存量集成 | 使用 HTTP Basic 认证。MCP Server 暂不支持 Access Token，新接入请使用 OAuth 2.0 |
 
-API Key/Secret 的获取方式参考 [API v1 认证方式](/api_v1/authentication/) 中的「获取 Key/Secret」部分。
+API Key/Secret 的说明参考 [API v1 认证方式](/api_v1/authentication/) 中的「旧版认证方式」部分。
 
 如使用 API Key/Secret，需要先生成 `BASE64_ENCODED_CREDENTIALS`：
 

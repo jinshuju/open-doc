@@ -10,11 +10,11 @@ sidebar_label: 批量新增数据
 
 | 功能 | 免费版 | 专业版/专业增强版 | 企业基础版 | 企业协作版 | 企业高级版 |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| 批量新增数据 | | | ✔️ | ✔️ | ✔️ |
+| 批量新增数据 | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
 
 ## 认证方式
 
-[V1 Basic 认证方式](/api_v1/authentication)
+[V1 Bearer 认证方式](/api_v1/authentication)
 
 ## headers 设置
 
@@ -96,7 +96,7 @@ POST https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries/batch
 
 ```bash
 curl -X POST "https://jinshuju.net/api/v1/forms/$FORM_TOKEN/entries/batch" \
-  -u "$API_KEY:$API_SECRET" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
   -d '{"entries":[{"field_1":"张三","field_2":"13000000000"},{"field_1":"李四","field_2":"13000000001"}]}'
@@ -107,8 +107,7 @@ curl -X POST "https://jinshuju.net/api/v1/forms/$FORM_TOKEN/entries/batch" \
 ```python
 import requests
 
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 form_token = 'YOUR_FORM_TOKEN'
 
 url = f'https://jinshuju.net/api/v1/forms/{form_token}/entries/batch'
@@ -120,7 +119,7 @@ payload = {
     ]
 }
 
-response = requests.post(url, auth=(api_key, api_secret), json=payload)
+response = requests.post(url, headers={'Authorization': f'Bearer {access_token}'}, json=payload)
 
 print(response.json())
 ```
@@ -132,8 +131,7 @@ require 'net/http'
 require 'uri'
 require 'json'
 
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 form_token = 'YOUR_FORM_TOKEN'
 
 uri = URI.parse("https://jinshuju.net/api/v1/forms/#{form_token}/entries/batch")
@@ -146,7 +144,7 @@ payload = {
 }
 
 request = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
-request.basic_auth(api_key, api_secret)
+request['Authorization'] = "Bearer #{access_token}"
 request.body = payload.to_json
 
 response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|

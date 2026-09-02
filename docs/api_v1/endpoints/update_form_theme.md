@@ -10,11 +10,11 @@ sidebar_label: 编辑表单主题
 
 | 功能 | 免费版 | 专业版/专业增强版 | 企业基础版 | 企业协作版 | 企业高级版 |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| 编辑表单主题 | | | ✔️ | ✔️ | ✔️ |
+| 编辑表单主题 | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
 
 ## 认证方式
 
-[V1 Basic 认证方式](/api_v1/authentication)
+[V1 Bearer 认证方式](/api_v1/authentication)
 
 ## headers 设置
 
@@ -22,7 +22,7 @@ sidebar_label: 编辑表单主题
 
 * `Content-Type: application/json`
 * `Accept: application/json`
-* `Authorization: 放入上一步骤生成的CODE`
+* `Authorization: Bearer YOUR_ACCESS_TOKEN`
 
 ## 接口说明
 
@@ -149,7 +149,7 @@ PATCH https://jinshuju.net/api/v1/forms/$FORM_TOKEN/theme
 
 Content-Type: application/json
 Accept: application/json
-Authorization: Basic BASE_64_ENCODED_CREDENTIALS
+Authorization: Bearer YOUR_ACCESS_TOKEN
 
 {
   "primary_color": "#FBBF24",
@@ -162,13 +162,12 @@ Authorization: Basic BASE_64_ENCODED_CREDENTIALS
 ```python
 import requests
 
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 form_token = 'YOUR_FORM_TOKEN'
 
 response = requests.patch(
     f'https://jinshuju.net/api/v1/forms/{form_token}/theme',
-    auth=(api_key, api_secret),
+    headers={'Authorization': f'Bearer {access_token}'},
     json={
         "primary_color": "#FBBF24",
         "wallpaper": {"background_color": "#FFFBEB"}
@@ -187,11 +186,10 @@ require 'json'
 
 form_token = 'YOUR_FORM_TOKEN'
 uri = URI.parse("https://jinshuju.net/api/v1/forms/#{form_token}/theme")
-api_key = 'YOUR_API_KEY'
-api_secret = 'YOUR_API_SECRET'
+access_token = 'YOUR_ACCESS_TOKEN'
 
 request = Net::HTTP::Patch.new(uri, 'Content-Type' => 'application/json')
-request.basic_auth(api_key, api_secret)
+request['Authorization'] = "Bearer #{access_token}"
 request.body = {
   primary_color: '#FBBF24',
   wallpaper: { background_color: '#FFFBEB' }
