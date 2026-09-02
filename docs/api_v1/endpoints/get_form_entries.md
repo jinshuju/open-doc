@@ -42,6 +42,9 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries
 # 按字段值过滤（filters 是一个 JSON 字符串）
 GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries?filters=[{"field":"field_3","operator":"gte","value":6}]
 
+# 关键词全文搜索（一次搜遍表单的所有可搜字段）
+GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries?keyword=张三
+
 # 如果数据过多，请求后续的数据
 GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries?next=
 ```
@@ -51,6 +54,7 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries?next=
 | FORM_TOKEN | 是    | String | 表单Token              |
 | created_at | 否    | String | 根据时间筛选数据，返回该时间点以后的数据 |
 | filters    | 否    | JSON 数组（也可作为字符串传入） | 字段值过滤条件，多条件 AND 组合。详见下方「filters 字段过滤」 |
+| keyword    | 否    | String | 关键词全文搜索，一次搜遍表单的所有可搜字段。详见下方「keyword 全文搜索」 |
 | next       | 否    | String | 分页参数。返回本次ID记录之后的数据   |
 
 ### 注意
@@ -116,6 +120,26 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries?next=
 ```
 
 > 提示：`filters` 也可以以 URL 参数传入（重复 `filters[]` 嵌套结构），但建议使用 JSON 字符串形式以避免歧义。`filters` 为空数组、`null` 或非法 JSON 时被静默忽略，等价于不传 `filters`。
+
+### keyword 全文搜索
+
+不知道值落在哪个字段时用 `keyword`，一次请求即可搜遍该表单的所有可搜字段——不需要先取字段列表再对每个字段发一条 `like` 过滤。
+
+* 覆盖范围与数据页的搜索框一致，不限于文本字段：选项、数字、日期、地址、矩阵、表格子列都在内，按**子串**匹配存储值。
+* 已知字段时优先用 `filters`：它把精确的、带类型的条件下推到单列。**同时传 `keyword` 和 `filters` 时是 AND 关系**——既命中关键词、又满足全部过滤条件的数据才会返回。
+* `keyword` 长度上限 200 个字符，超出返回 400。
+* 数据量超过 99999 条的表单，全文搜索依赖 ClickHouse；该表单不可用时返回 400，请改用 `filters` 按具体字段过滤。
+* `keyword` 为空字符串时被静默忽略，等价于不传。
+
+**400 错误响应示例**：
+
+```json
+// 关键词过长
+{ "error_description": "Keyword is too long (201 characters, at most 200)." }
+
+// 表单过大且全文搜索不可用
+{ "error_description": "Full-text search is unavailable on this form: it holds more than 99999 entries. Filter on a specific field instead." }
+```
 
 ### Response
 
