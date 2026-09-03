@@ -11,18 +11,14 @@ title: 快速接入
 
 | 认证方式 | 适合场景 | 说明 |
 |---|---|---|
-| OAuth 2.0 | 推荐给支持 OAuth 的 AI 工具和第三方应用 | 标准 OAuth 2.0 授权流程，按 scope 控制权限，无需手动保存 API Key/Secret |
-| API Key/Secret | 已有 Key/Secret 的存量集成 | 使用 HTTP Basic 认证。MCP Server 暂不支持 Access Token，新接入请使用 OAuth 2.0 |
+| OAuth 2.0 | 推荐给支持 OAuth 的 AI 工具和第三方应用 | 标准 OAuth 2.0 授权流程，按 scope 控制权限，无需手动保存凭据 |
+| Access Token | 固定凭证场景，或工具不支持 OAuth 时 | 在「个人中心 → API」创建个人 Access Token，通过 `Authorization: Bearer` 传递 |
 
-API Key/Secret 的说明参考 [API v1 认证方式](/api_v1/authentication/) 中的「旧版认证方式」部分。
+Access Token 的创建方式参考 [API v1 认证方式](/api_v1/authentication/) 中的「获取 Access Token」部分。把下方配置里的 `YOUR_ACCESS_TOKEN` 换成你创建的 Token 即可。
 
-如使用 API Key/Secret，需要先生成 `BASE64_ENCODED_CREDENTIALS`：
-
-```bash
-echo -n "api_key:api_secret" | base64
-```
-
-将输出的字符串替换下方配置中的 `BASE64_ENCODED_CREDENTIALS` 即可。
+> MCP Server 只接受**个人** Access Token（`gdp_` 开头）：MCP 的工具都以某个用户的身份执行，企业 Access Token 背后没有具体用户，无法用于 MCP。
+>
+> 已有 API Key/Secret 的存量集成仍可继续使用 HTTP Basic 认证（`Authorization: Basic BASE64(api_key:api_secret)`），该方式后续会下线，建议迁移到 Access Token。
 
 ## 在 Claude Code 中配置
 
@@ -42,20 +38,20 @@ claude mcp add jinshuju -s user --transport http https://jinshuju.net/mcp
 
 使用 OAuth 方式时，Claude Code 会自动引导你完成授权流程。
 
-### 使用 API Key/Secret 认证
+### 使用 Access Token 认证
 
 项目级别配置（仅当前项目生效）：
 
 ```bash
 claude mcp add jinshuju --transport http https://jinshuju.net/mcp \
-  --header "Authorization: Basic BASE64_ENCODED_CREDENTIALS"
+  --header "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 用户级别配置（所有项目生效）：
 
 ```bash
 claude mcp add jinshuju -s user --transport http https://jinshuju.net/mcp \
-  --header "Authorization: Basic BASE64_ENCODED_CREDENTIALS"
+  --header "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ## 在 Cursor 中配置
@@ -76,7 +72,7 @@ claude mcp add jinshuju -s user --transport http https://jinshuju.net/mcp \
 
 使用 OAuth 方式时，Cursor 会自动引导你完成授权流程。
 
-### 使用 API Key/Secret 认证
+### 使用 Access Token 认证
 
 ```json
 {
@@ -84,7 +80,7 @@ claude mcp add jinshuju -s user --transport http https://jinshuju.net/mcp \
     "jinshuju": {
       "url": "https://jinshuju.net/mcp",
       "headers": {
-        "Authorization": "Basic BASE64_ENCODED_CREDENTIALS"
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN"
       }
     }
   }
@@ -107,7 +103,7 @@ claude mcp add jinshuju -s user --transport http https://jinshuju.net/mcp \
 }
 ```
 
-### 使用 API Key/Secret 认证
+### 使用 Access Token 认证
 
 ```json
 {
@@ -115,7 +111,7 @@ claude mcp add jinshuju -s user --transport http https://jinshuju.net/mcp \
     "jinshuju": {
       "serverUrl": "https://jinshuju.net/mcp",
       "headers": {
-        "Authorization": "Basic BASE64_ENCODED_CREDENTIALS"
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN"
       }
     }
   }
@@ -138,7 +134,7 @@ claude mcp add jinshuju -s user --transport http https://jinshuju.net/mcp \
 |---|---|
 | MCP Server URL | `https://jinshuju.net/mcp` |
 | 认证方式（OAuth） | 无需额外配置，工具会自动发起 OAuth 授权流程 |
-| 认证方式（API Key/Secret） | `Authorization: Basic BASE64(api_key:api_secret)` |
+| 认证方式（Access Token） | `Authorization: Bearer YOUR_ACCESS_TOKEN` |
 
 不同工具的配置方式可能略有差异，请参考对应工具的 MCP 配置文档。核心配置通常只需要 Server URL 和认证信息。
 
