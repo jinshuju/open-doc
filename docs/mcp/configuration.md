@@ -12,11 +12,18 @@ title: 快速接入
 | 认证方式 | 适合场景 | 说明 |
 |---|---|---|
 | OAuth 2.0 | 推荐给支持 OAuth 的 AI 工具和第三方应用 | 标准 OAuth 2.0 授权流程，按 scope 控制权限，无需手动保存凭据 |
-| Access Token | 固定凭证场景，或工具不支持 OAuth 时 | 在「个人中心 → API」创建个人 Access Token，通过 `Authorization: Bearer` 传递 |
+| Access Token | 固定凭证场景，或工具不支持 OAuth 时 | 在「个人中心 → API」或「系统设置 → 企业 API」创建 Access Token，通过 `Authorization: Bearer` 传递 |
 
 Access Token 的创建方式参考 [API v1 认证方式](/api_v1/authentication/) 中的「获取 Access Token」部分。把下方配置里的 `YOUR_ACCESS_TOKEN` 换成你创建的 Token 即可。
 
-> MCP Server 只接受**个人** Access Token（`gdp_` 开头）：MCP 的工具都以某个用户的身份执行，企业 Access Token 背后没有具体用户，无法用于 MCP。
+个人 Access Token 与企业 Access Token 都可用于 MCP，权限范围与 API v1 一致：
+
+| Token | 能操作的数据 |
+|---|---|
+| 个人 Access Token | 该账号创建的表单，以及共享给它的表单 |
+| 企业 Access Token | 整个企业的表单与数据；写入和操作记录挂在企业所有者名下 |
+
+> 「我提交过的表单 / 数据」这类按个人维度回答的工具（`list_my_submitted_forms`、`list_my_submitted_entries`），只能用个人 Access Token 或 OAuth 调用。
 >
 > 已有 API Key/Secret 的存量集成仍可继续使用 HTTP Basic 认证（`Authorization: Basic BASE64(api_key:api_secret)`），该方式后续会下线，建议迁移到 Access Token。
 
