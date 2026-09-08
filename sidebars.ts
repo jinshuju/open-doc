@@ -39,6 +39,18 @@ const sidebars: SidebarsConfig = {
                 'api_v1/endpoints/copy_form',
                 'api_v1/endpoints/update_form_theme',
                 'api_v1/endpoints/update_form_folder',
+                'api_v1/endpoints/get_form_field_rules',
+                'api_v1/endpoints/get_form_cooperators',
+                {
+                  type: 'category',
+                  label: '考试 / 测评设置',
+                  items: [
+                    'api_v1/endpoints/get_form_exam_setting',
+                    'api_v1/endpoints/update_form_exam_setting',
+                    'api_v1/endpoints/get_form_evaluation_setting',
+                    'api_v1/endpoints/update_form_evaluation_setting',
+                  ],
+                },
                 {
                   type: 'category',
                   label: '视图',
@@ -72,6 +84,17 @@ const sidebars: SidebarsConfig = {
                 'api_v1/endpoints/get_form_entry',
                 'api_v1/endpoints/update_form_entry',
                 'api_v1/endpoints/delete_form_entry',
+              ],
+            },
+            {
+              type: 'category',
+              label: '对外查询',
+              items: [
+                'api_v1/endpoints/get_opensearch_queries',
+                'api_v1/endpoints/get_opensearch_query',
+                'api_v1/endpoints/create_opensearch_query',
+                'api_v1/endpoints/update_opensearch_query',
+                'api_v1/endpoints/get_opensearch_query_suggestions',
               ],
             },
             {

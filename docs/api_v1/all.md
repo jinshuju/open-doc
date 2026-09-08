@@ -58,6 +58,54 @@ PATCH /api/v1/forms/FORM_TOKEN/folder
 
 [查看详情](/api_v1/endpoints/update_form_folder)
 
+### 获取表单字段规则
+
+```
+GET /api/v1/forms/FORM_TOKEN/field_rules
+```
+
+[查看详情](/api_v1/endpoints/get_form_field_rules)
+
+### 获取表单协作者
+
+```
+GET /api/v1/forms/FORM_TOKEN/cooperators
+```
+
+[查看详情](/api_v1/endpoints/get_form_cooperators)
+
+### 获取考试设置
+
+```
+GET /api/v1/forms/FORM_TOKEN/exam_setting
+```
+
+[查看详情](/api_v1/endpoints/get_form_exam_setting)
+
+### 编辑考试设置
+
+```
+PATCH /api/v1/forms/FORM_TOKEN/exam_setting
+```
+
+[查看详情](/api_v1/endpoints/update_form_exam_setting)
+
+### 获取测评设置
+
+```
+GET /api/v1/forms/FORM_TOKEN/evaluation_setting
+```
+
+[查看详情](/api_v1/endpoints/get_form_evaluation_setting)
+
+### 编辑测评设置
+
+```
+PATCH /api/v1/forms/FORM_TOKEN/evaluation_setting
+```
+
+[查看详情](/api_v1/endpoints/update_form_evaluation_setting)
+
 ## 文件夹
 
 ### 获取文件夹列表
@@ -135,6 +183,48 @@ DELETE /api/v1/forms/FORM_TOKEN/entries/SERIAL_NUMBER
 ```
 
 [查看详情](/api_v1/endpoints/delete_form_entry)
+
+## 对外查询
+
+### 获取对外查询列表
+
+```
+GET /api/v1/opensearch/queries
+```
+
+[查看详情](/api_v1/endpoints/get_opensearch_queries)
+
+### 获取单个对外查询
+
+```
+GET /api/v1/opensearch/queries/QUERY_TOKEN
+```
+
+[查看详情](/api_v1/endpoints/get_opensearch_query)
+
+### 创建对外查询
+
+```
+POST /api/v1/opensearch/queries
+```
+
+[查看详情](/api_v1/endpoints/create_opensearch_query)
+
+### 编辑对外查询
+
+```
+PATCH /api/v1/opensearch/queries/QUERY_TOKEN
+```
+
+[查看详情](/api_v1/endpoints/update_opensearch_query)
+
+### 获取对外查询可用字段
+
+```
+GET /api/v1/opensearch/query_suggestions
+```
+
+[查看详情](/api_v1/endpoints/get_opensearch_query_suggestions)
 
 ## 账户
 

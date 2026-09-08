@@ -28,7 +28,7 @@ sidebar_label: 编辑表单
 
 * 个人版用户/企业子账号用户，只可以编辑 __自己创建__ 的表单。无法编辑共享的表单。
 * 企业全局 API，可以编辑整个企业所有的表单。
-* 顶层只有 4 个 key：`name` / `description` / `setting` / `fields`。字段的增删改都归并在 `fields` 对象下。
+* 顶层只有 5 个 key：`name` / `description` / `setting` / `fields` / `field_rules`。字段的增删改都归并在 `fields` 对象下，字段显示规则的增删改归并在 `field_rules` 对象下。
 * 一次请求可以同时更改多处（改名 + 加字段 + 删字段 + 改选项），服务端原子保存。
 * 至少要传一个编辑操作，否则返回 400。
 
@@ -103,6 +103,25 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN
 | fields.update_choices[].add | 否 | Array | 要新增的选项 |
 | fields.update_choices[].remove | 否 | Array | 要删除的选项（按 `api_code`） |
 | fields.update_choices[].update | 否 | Array | 要重命名的选项（按 `api_code`，传新的 `value`） |
+| field_rules | 否 | Object | 字段显示规则操作聚合对象，包含 `add` / `update` / `remove` 三个子键。见下方「字段显示规则」 |
+| field_rules.add | 否 | Array | 要新增的规则，追加到规则列表末尾 |
+| field_rules.add[].targets_display_mode | 是 | String | `show` = 条件满足时显示 `targets` 中的字段；`abort` = 条件满足时终止填写 |
+| field_rules.add[].targets | 否 | Array(String) | 条件满足时显示的字段 `api_code`；`targets_display_mode` 为 `show` 时必传，`abort` 时忽略 |
+| field_rules.add[].operator | 否 | String | 多个条件之间的关系：`and` 全部满足 / `or` 任一满足，默认 `or` |
+| field_rules.add[].conditions | 是 | Array | 触发条件数组 |
+| field_rules.add[].conditions[].trigger | 是 | String | 触发字段的 `api_code` |
+| field_rules.add[].conditions[].comparator | 否 | String | 比较符，必须与触发字段类型匹配，否则请求被拒绝；省略时取该字段类型的默认比较符。取值见[获取表单字段规则](/api_v1/endpoints/get_form_field_rules) |
+| field_rules.add[].conditions[].value | 是 | Array \| String \| Number | 比较值，形态取决于 `comparator` |
+| field_rules.update | 否 | Array | 按 `index` 原地修改已有规则；只有传入的 key 会变 |
+| field_rules.update[].index | 是 | Number | 要修改的规则的 0 起序号，来自[获取表单字段规则](/api_v1/endpoints/get_form_field_rules) |
+| field_rules.remove | 否 | Array(Number) | 要删除的规则的 `index` 数组；其余规则保持不变 |
+
+#### 字段显示规则
+
+* `field_rules` 是**增量操作**：只传要改的规则，其余规则原样保留。
+* `update` / `remove` 按规则的 **0 起 `index`** 定位，这个 `index` 必须先从[获取表单字段规则](/api_v1/endpoints/get_form_field_rules)读出来。删除规则后其余规则会重新编号，所以每轮改动前都要重新读一次。
+* `update` 里传了 `conditions` 或 `targets` 时，该规则的对应列表会被整体替换。
+* 目标字段必须在触发字段**之后**，否则规则会被静默丢弃；目标字段也不能是隐藏字段（`private: true`）—— 隐藏字段对外永不可见，规则无法把它显示出来。
 
 > **字段特定属性（`fields.update[]` 子项）**：可选 `predefined_value` / `placeholder` / `range_min` / `range_max` / `precision` / `max_size` / `max_file_quantity` / `minimum_ratings_display_text` / `maximum_ratings_display_text` 等，详见[创建表单](/api_v1/endpoints/create_form)的「字段特定属性」。仅对应类型识别，传给其他类型会被静默忽略。未传的属性保持原值。
 

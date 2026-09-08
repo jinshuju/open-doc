@@ -82,6 +82,15 @@ POST https://jinshuju.net/api/v1/forms
 | description | 否 | String | 表单描述 |
 | setting | 否 | Object | 表单设置对象（提交后行为、表单状态、提交限制、权限、Webhook、通知规则等）。完整字段见[表单设置 Schema](/api_v1/schemas/form_setting)。`setting.notification_rules` 用于配置企微 / 钉钉 / Webhook 类高级通知规则，详见 schema。 |
 | folder_token | 否 | String | 目标文件夹 token；设置后新表单会放入该文件夹 |
+| layout | 否 | String | 表单样式：`classic`（经典式，默认）每页展示全部字段；`card`（分页式）一页一题、自动翻页。见下方「分页式表单」 |
+
+#### 分页式表单
+
+传 `layout: "card"` 可创建**分页式**（一页一题、自动翻页）表单。分页式由整表样式控制，不要用 `PageBreak` 分页字段去拼。
+
+分页式无法渲染以下字段类型，请求里出现任何一个都会返回 400（错误信息会列出是哪些）：
+
+`PageBreak` `MatrixField` `MatrixScaleField` `TableField` `GoodsField` `ESignatureField` `FormAssociation` `MultipleBlanksField` `WidgetMap` `WidgetContact` `WidgetVideo` `WidgetButton` `WidgetMarquee`
 
 #### 支持的字段类型
 
