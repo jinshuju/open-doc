@@ -55,7 +55,7 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries?next=
 | created_at | 否    | String | 根据时间筛选数据，返回该时间点以后的数据 |
 | filters    | 否    | JSON 数组（也可作为字符串传入） | 字段值过滤条件，多条件 AND 组合。详见下方「filters 字段过滤」 |
 | keyword    | 否    | String | 关键词全文搜索，一次搜遍表单的所有可搜字段。详见下方「keyword 全文搜索」 |
-| next       | 否    | String | 分页参数。返回本次ID记录之后的数据   |
+| next       | 否    | String | 分页参数。原样传回上一页响应中的 `next`，不要自行构造   |
 
 ### 注意
 
@@ -104,7 +104,7 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries?next=
 
 > 选项类字段（RadioButton / CheckBox / DropDown）的 `value` 传**选项的 `api_code`**（不是中文 label），与 `create_entry` / `update_entry` 一致。
 
-**排序行为**：当 `filters` 中包含 `created_at` 时，结果按 `created_at` 升序返回；否则按 `serial_number` 升序。`next` 仍然是 `serial_number` 游标。
+**排序与分页行为**：当 `filters` 中包含 `created_at`（或传了 `created_at` 参数）时，结果按 `created_at` 升序返回，此时 `next` 是**行偏移**；否则按 `serial_number` 升序，`next` 是 `serial_number` 游标。两种情况下客户端都只需把上一页返回的 `next` 原样传回，不要自行构造。
 
 **400 错误响应示例**：
 
@@ -182,7 +182,7 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries?next=
 | data[].creator_name | 否 | String | 本条数据的填写者（仅对系统内录入数据有效） |
 | data[].created_at | 是 | Date | 数据提交时间 |
 | data[].updated_at | 是 | Date | 数据最后一次变更时间 |
-| next | 否 | String | 分页参数。本次请求分页ID。可用于请求下一页数据 |
+| next | 否 | String | 分页参数。原样传回即可请求下一页数据；null 表示没有下一页 |
 
 > 数据详细结构，请[参考文档](/api_v1/schemas/entry)
 
