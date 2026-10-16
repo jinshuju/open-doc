@@ -63,12 +63,12 @@ GET https://jinshuju.net/api/v1/me
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | id | 是 | String | 用户 ID |
-| name | 是 | String / null | 显示名称 |
+| name | 是 | String / null | 用户显示名 |
 | email | 是 | String / null | 邮箱 |
-| mobile | 是 | String / null | 手机号 |
-| role | 是 | String | 在账号中的角色<br />可选值：`owner`、`admin`、`worker`、`outworker` |
-| billing_account_id | 是 | String | 所属账号 ID |
-| created_at | 是 | DateTime | 注册时间（UTC） |
+| mobile | 是 | String / null | 手机号（可能为空） |
+| role | 是 | String | 在企业账户中的角色（`owner` / `admin` / `worker` / `outworker`） |
+| billing_account_id | 是 | String | 所属企业账户 ID |
+| created_at | 是 | DateTime | 用户创建时间（UTC） |
 
 <!-- /openapi -->
 
@@ -78,10 +78,10 @@ GET https://jinshuju.net/api/v1/me
 
 | 状态码 | 说明 |
 | ------ | ------ |
-| 200 | 当前用户 |
-| 401 | 未认证：令牌无效或已撤销 |
-| 402 | 当前套餐不包含 API v1 能力 |
-| 403 | 无权限：OAuth 令牌 scope 不足，或操作被业务规则拒绝 |
+| 200 | 成功 |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
 
 <!-- /openapi -->
 

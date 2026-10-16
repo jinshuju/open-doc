@@ -43,7 +43,7 @@ GET https://jinshuju.net/api/v1/folders?limit=20
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| limit | 否 | Integer | 返回数量上限，缺省 50，最大 100<br />默认值：`50`；取值范围：1 ~ 100 |
+| limit | 否 | Integer | 返回条数上限，默认 50，最多 100 |
 
 <!-- /openapi -->
 
@@ -65,13 +65,13 @@ GET https://jinshuju.net/api/v1/folders?limit=20
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| total | 是 | Integer | 可管理的文件夹总数 |
-| count | 是 | Integer | 本次返回的数量 |
-| data | 是 | Array(Object) |  |
+| total | 是 | Integer | 当前账号可管理的文件夹总数 |
+| count | 是 | Integer | 本次请求返回的文件夹数量 |
+| data | 是 | Array(Object) | 文件夹信息数组 |
 | data[].token | 是 | String | 文件夹 token |
 | data[].name | 是 | String | 文件夹名称 |
-| data[].kind | 是 | String / null | 文件夹类型：`form` 放表单、`table` 放表格；早期创建的表单文件夹可能为 null，按 `form` 对待<br />可选值：`form`、`table`、`quickpay` |
-| data[].created_at | 是 | DateTime | 创建时间（UTC） |
+| data[].kind | 是 | String / null | 文件夹类型：`form` / `table` / `quickpay`；为 `null` 时视为 `form` |
+| data[].created_at | 是 | DateTime | 文件夹创建时间 |
 
 <!-- /openapi -->
 
@@ -81,10 +81,10 @@ GET https://jinshuju.net/api/v1/folders?limit=20
 
 | 状态码 | 说明 |
 | ------ | ------ |
-| 200 | 文件夹列表 |
-| 401 | 未认证：令牌无效或已撤销 |
-| 402 | 当前套餐不包含 API v1 能力 |
-| 403 | 无权限：OAuth 令牌 scope 不足，或操作被业务规则拒绝 |
+| 200 | 成功 |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
 
 <!-- /openapi -->
 

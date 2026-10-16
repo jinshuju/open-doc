@@ -47,9 +47,9 @@ POST https://jinshuju.net/api/v1/forms/FORM_TOKEN/copy
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| FORM_TOKEN | 是 | String | 表单 token（`GET /forms` 返回的 `token`），也接受 24 位十六进制的表单 id。 |
-| name | 否 | String | 新表单名称；省略时沿用服务端默认命名 |
-| folder_token | 否 | String | 目标文件夹 token 或 id；省略则不放入文件夹 |
+| FORM_TOKEN | 是 | String | 源表单 Token（URL 路径参数） |
+| name | 否 | String | 新表单的标题，默认在原标题前加 `[新]`，例如 `[新]问卷调查表` |
+| folder_token | 否 | String | 目标文件夹 token；设置后新表单会放入该文件夹 |
 
 <!-- /openapi -->
 
@@ -61,13 +61,13 @@ POST https://jinshuju.net/api/v1/forms/FORM_TOKEN/copy
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| name | 是 | String |  |
-| token | 是 | String |  |
-| url | 是 | String | 表单对外填写地址（按企业账户的自定义域名 / 子域名生成，不能由 token 推算） |
-| description | 是 | String / null | 表单描述（可能是 HTML 富文本） |
-| fields | 是 | Array(Object) | 字段列表，按表单中的顺序排列；每个元素是以字段 api_code 为唯一键的对象 |
-| fields[].\* | 否 | Object | 字段定义。所有字段都有 `label` / `api_code_alias` / `type` / `notes` / `private` / `validation`，其余属性按 `type` 出现。<br />`type` 取值与字段的对应关系：<br />type：字段<br />`single_line_text`：单行文字<br />`paragraph_text`：多行文字<br />`name` / `id_card` / `mobile` / `email` / `phone` / `link` / `address` / `geo_location`：姓名 / 身份证 / 手机 / 邮箱 / 电话 / 网址 / 地址 / 地理位置<br />`single_choice` / `multiple_choice` / `drop_down` / `cascade_drop_down`：单选 / 多选 / 下拉 / 多级下拉（颜色标记也是 `drop_down`）<br />`image_radio_button` / `image_check_box`：图片单选 / 图片多选<br />`number` / `formula` / `rating` / `nps` / `boolean`：数字 / 计算 / 评分 / NPS / 是否<br />`date_time` / `date` / `time`：日期 / 日期（旧）/ 时间<br />`attachment` / `audio` / `e_signature`：上传文件 / 语音 / 电子签名<br />`likert` / `matrix` / `matrix_scale` / `table` / `multiple_blanks` / `sort`：矩阵单选 / 矩阵填空 / 矩阵量表 / 表格 / 横向填空 / 排序<br />`goods` / `reservation`：商品 / 预约<br />`form_association` / `reversed_association`：表单关联 / 反向关联<br />详见[API V1 字段结构 Schema](/api_v1/schemas/field) |
-| setting | 是 | Object | 表单设置；表单尚无设置时为空对象<br />详见[API V1 表单设置 Schema](/api_v1/schemas/form_setting) |
+| name | 是 | String | 表单标题 |
+| token | 是 | String | 表单 Token |
+| url | 是 | String | 表单的公开填写链接，不能用 token 自行拼接 |
+| description | 是 | String / null | 表单描述 |
+| fields | 是 | Array(Object) | 表单字段数据 |
+| fields[].\* | 否 | Object | 键为字段的 `api_code`，值为字段定义 |
+| setting | 是 | Object | 表单设置对象；字段列表与含义见[表单设置 Schema](/api_v1/schemas/form_setting)。未启用的嵌套规则（如 `by_time_range_close_rule`）以 `null` 返回。 |
 
 <!-- /openapi -->
 
@@ -77,12 +77,12 @@ POST https://jinshuju.net/api/v1/forms/FORM_TOKEN/copy
 
 | 状态码 | 说明 |
 | ------ | ------ |
-| 200 | 新建的表单 |
-| 400 | 请求参数或数据不合法 |
-| 401 | 未认证：令牌无效或已撤销 |
-| 402 | 当前套餐不包含 API v1 能力 |
-| 403 | OAuth scope 不足（error_description 结构），或源表单/创建者被冻结（errors + status_code 结构） |
-| 404 | 资源不存在或当前身份不可访问（个人令牌只能访问自己创建或被共享的表单） |
+| 200 | 复制成功 |
+| 400 | 复制过程中发生错误 |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 源表单已被冻结，或其创建者已被冻结 |
+| 404 | 源表单不存在；或用户无权复制；或指定的文件夹不存在/无权管理 |
 
 <!-- /openapi -->
 

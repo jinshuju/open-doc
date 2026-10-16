@@ -41,8 +41,8 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/views/VIEW_TOKEN
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| FORM_TOKEN | 是 | String | 表单 token（`GET /forms` 返回的 `token`），也接受 24 位十六进制的表单 id。 |
-| VIEW_TOKEN | 是 | String | 视图 token |
+| FORM_TOKEN | 是 | String | 表单 Token（URL 路径参数） |
+| VIEW_TOKEN | 是 | String | 视图 Token（URL 路径参数） |
 
 <!-- /openapi -->
 
@@ -71,39 +71,39 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/views/VIEW_TOKEN
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| token | 是 | String | 视图 token |
+| token | 是 | String | 视图 Token |
 | name | 是 | String | 视图名称 |
-| view_type | 是 | String | 视图类型；form 为表单视图（对外填写页，仅表格支持）<br />可选值：`grid`、`kanban`、`stats`、`form` |
-| position | 是 | Integer | 排序位置 |
-| predefined | 是 | Boolean | 是否为预置视图（不可删除） |
-| visibility | 是 | String | 可见性，cooperators 对全部协作者可见，personal 仅创建者可见<br />可选值：`cooperators`、`personal` |
-| view_scope | 是 | String | 视图归属，form 表示属于表单本身（不可删除、不可切换可见性）<br />可选值：`user`、`form` |
-| prefer_columns | 是 | Array(String) | 显示的字段 api_code 列表 |
-| sorted_columns | 是 | Array(Object) | 列显示顺序，按 position 升序 |
-| sorted_columns[].api_code | 是 | String | 字段 api_code |
+| view_type | 是 | String | 视图类型：`grid` / `kanban` / `stats` / `form`（表单视图） |
+| position | 是 | Integer | 视图排序位置 |
+| predefined | 是 | Boolean | 是否为系统预设视图 |
+| visibility | 是 | String | 可见性：`cooperators`（协作者可见）/ `personal`（仅创建者可见） |
+| view_scope | 是 | String | 视图归属：`user` / `form`。`form` 视图不可删除，也不可切换可见性 |
+| prefer_columns | 是 | Array(String) | 视图展示的字段 `api_code` 列表；为空时表示展示表单可推送字段 |
+| sorted_columns | 是 | Array(Object) | 列的显示顺序，按 `position` 升序 |
+| sorted_columns[].api_code | 是 | String | 字段的 `api_code` |
 | sorted_columns[].position | 是 | Integer | 列位置，从 1 开始 |
-| kanban_group_by_api_code | 是 | String / null | 看板分组字段 api_code |
-| kanban_card_title_api_code | 是 | String / null | 看板卡片标题字段 api_code，未设置时由服务端根据 prefer_columns 推算 |
-| kanban_group_order | 是 | Array(String) | 看板分组显示顺序（分组选项 api_code，`__unset__` 表示未设置分组） |
-| kanban_hidden_groups | 是 | Array(String) | 隐藏的看板分组（同 kanban_group_order 的取值） |
-| grid_frozen_boundary_api_code | 是 | String / null | 表格视图冻结列边界字段 api_code |
-| sort | 是 | Array(Object) | 排序规则 |
-| sort[].api_code | 是 | String | 排序字段 api_code |
-| sort[].order | 是 | String | 排序方向<br />可选值：`asc`、`desc` |
-| filter | 是 | Array(Object) | 筛选条件，无筛选时为空数组 |
-| filter[].field | 是 | String | 字段 api_code（也接受 api_code / trigger 作为键名） |
-| filter[].operator | 是 | String | 运算符，与数据列表 filters 相同：eq、ne、any_in、none_in、between、not_between、null、not_null、gte、gt、lte、lt、like、not_like、match、within_last； 别名 start / end / equal / not_equal 分别等价于 gte / lte / eq / ne。每种字段支持的子集以服务端为准。 选项类字段的 eq / ne 保存时会转为 any_in / none_in 且值转为数组。 |
-| filter[].value | 否 | Any | 条件值，类型随字段与运算符而定：between 为两元素数组；within_last 为 \{"unit": "day", "n": 30\}（unit 可为 minute / day / week / month）； 选项类字段可传选项 api_code 或选项文本，"null" 表示未填写；null / not_null 无需 value。 |
-| created_at | 是 | DateTime | 创建时间 |
-| updated_at | 是 | DateTime | 更新时间 |
+| kanban_group_by_api_code | 是 | String / null | 看板视图分组字段的 `api_code` |
+| kanban_card_title_api_code | 是 | String / null | 看板卡片标题字段的 `api_code`；未设置时按 `prefer_columns` 推算 |
+| kanban_group_order | 是 | Array(String) | 看板分组的显示顺序，元素为分组选项的 `api_code`；`__unset__` 表示未分组 |
+| kanban_hidden_groups | 是 | Array(String) | 隐藏的看板分组，取值同 `kanban_group_order` |
+| grid_frozen_boundary_api_code | 是 | String / null | 表格视图中冻结列边界处字段的 `api_code` |
+| sort | 是 | Array(Object) | 排序规则数组 |
+| sort[].api_code | 是 | String | 排序字段的 `api_code`，可包含系统字段如 `serial_number` |
+| sort[].order | 是 | String | 排序方向：`asc` / `desc` |
+| filter | 是 | Array(Object) | 视图筛选条件数组。无筛选条件时返回空数组 |
+| filter[].field | 是 | String | 筛选字段的 `api_code` |
+| filter[].operator | 是 | String | 筛选操作符 |
+| filter[].value | 否 | Any | 筛选值；`null` / `not_null` 不返回该字段 |
+| created_at | 是 | DateTime | 视图创建时间 |
+| updated_at | 是 | DateTime | 视图最后更新时间 |
 | title | 否 | String / null | 填写页标题（仅表单视图返回） |
 | description | 否 | String / null | 填写页描述（仅表单视图返回） |
-| published | 否 | Boolean | 是否已发布；未发布时填写链接不可用（仅表单视图返回） |
+| published | 否 | Boolean | 是否已发布，未发布时填写链接不可用（仅表单视图返回） |
 | fill_url | 否 | String | 对外填写链接（仅表单视图返回） |
-| fill_items | 否 | Array(Object) | 填写页上勾选的填写项，按填写页顺序，值为生效值（仅表单视图返回） |
-| fill_items[].api_code | 是 | String | 列的 api_code |
-| fill_items[].label | 是 | String / null | 填写页上显示的标题（未单独设置时为列标题） |
-| fill_items[].notes | 是 | String / null | 填写页上显示的说明（未单独设置时为列说明） |
+| fill_items | 否 | Array(Object) | 填写页上勾选的填写项，按填写页顺序（仅表单视图返回） |
+| fill_items[].api_code | 是 | String | 列的 `api_code` |
+| fill_items[].label | 是 | String / null | 填写页上显示的标题，未单独设置时为列标题 |
+| fill_items[].notes | 是 | String / null | 填写页上显示的说明，未单独设置时为列说明 |
 | fill_items[].required | 是 | Boolean | 是否必填 |
 
 <!-- /openapi -->
@@ -116,11 +116,11 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/views/VIEW_TOKEN
 
 | 状态码 | 说明 |
 | ------ | ------ |
-| 200 | 视图详情 |
-| 401 | 未认证：令牌无效或已撤销 |
-| 402 | 当前套餐不包含 API v1 能力 |
-| 403 | 无权限：OAuth 令牌 scope 不足，或操作被业务规则拒绝 |
-| 404 | 资源不存在或当前身份不可访问（个人令牌只能访问自己创建或被共享的表单） |
+| 200 | 获取成功 |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
+| 404 | 表单或视图不存在，或无权访问 |
 
 <!-- /openapi -->
 

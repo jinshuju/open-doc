@@ -50,13 +50,13 @@ GET https://jinshuju.net/api/v1/forms?next=60cc514761936ced06123456
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| q | 否 | String | 按名称模糊匹配（不区分大小写，同时匹配对外名称与站内名称）。可传多个值（`q[]=A&q[]=B`），匹配名称包含其中任一的表单。等价于 `filters=[{"field":"form_name","operator":"like","value":...}]`。 |
-| filters | 否 | String | 筛选条件，JSON 数组，多个条件为「且」关系。可筛选字段与操作符：<br />field · 类型 · 操作符<br />`form_name` · 文本 · `eq` `ne` `any_in` `none_in` `like` `not_like`<br />`created_at` · 时间 · `eq` `ne` `gte` `gt` `lte` `lt` `within_last`<br />`last_entry_created_at` · 时间 · 同上（从未收到数据的表单没有该值）<br />`entries_count` · 整数 · `eq` `ne` `gte` `gt` `lte` `lt`<br />`within_last` 的值形如 `{"unit":"day","n":30}`（unit 可为 minute / day / week / month），表示从现在起往前的窗口。 示例：`[{"field":"last_entry_created_at","operator":"within_last","value":{"unit":"day","n":7}}]` |
-| sort | 否 | String | 排序规则，JSON 数组，每项 `{"field": "<字段>", "order": "asc"\|"desc"}`（order 缺省 asc），按顺序生效。 可排序字段：`created_at`、`last_entry_created_at`、`entries_count`；其他字段、非法 order 或无法解析的 JSON 返回 400。 传 `sort` 后 `next` 变为 `row:<偏移量>` 形式的游标，只能用于同样 `sort` 的请求；值相同的行在翻页间可能出现顺序变化。 |
-| next | 否 | String | 上一页响应中的 `next`，原样回传以取下一页。不能与 `skip` 同时传。 |
-| skip | 否 | Integer | 起始行偏移（0 起，最大 10000），用于并行切片读取；返回的 `next` 仍可继续翻页。不能与 `next` 同时传。<br />取值范围：0 ~ 10000 |
-| limit | 否 | Integer | 每页条数，缺省 50，最大 1000（超过按 1000 处理）。传 0 时只返回 `total`，`data` 为空。<br />默认值：`50` |
-| include_transactions | 否 | Boolean | 为 `true` 时，已绑定收款账户（商户号 / 微信支付 / 支付宝）的表单附带 `transactions` 收款统计；未绑定的表单没有该键。缺省不附带。<br />默认值：`false` |
+| q | 否 | String | 关键词模糊匹配表单名称（不区分大小写）。匹配范围包含表单名称（`name`）和子标题（`subname`）。`total` 返回的是匹配后的总数。 |
+| filters | 否 | String | 筛选条件，JSON 数组，多个条件为 AND，如 `[{"field":"entries_count","operator":"gte","value":1}]`；可筛选 `form_name` / `created_at` / `last_entry_created_at` / `entries_count` |
+| sort | 否 | String | 排序规则，JSON 数组，如 `[{"field":"created_at","order":"desc"}]`；可排序 `created_at` / `last_entry_created_at` / `entries_count`。翻页时须带相同的 `sort` |
+| next | 否 | String | 分页参数。原样传回上一页响应中的 `next`，不可与 `skip` 同用 |
+| skip | 否 | Integer | 起始行偏移，从 0 起，最大 10000；不可与 `next` 同用 |
+| limit | 否 | Integer | 每页数量，默认 50，最大 1000；传 0 时只返回 `total` |
+| include_transactions | 否 | Boolean | 为 `true` 时，绑定了收款账户的表单返回 `transactions` |
 
 <!-- /openapi -->
 
@@ -94,22 +94,22 @@ GET https://jinshuju.net/api/v1/forms?next=60cc514761936ced06123456
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| total | 是 | Integer | 满足条件的表单总数 |
-| count | 是 | Integer | 本页条数 |
-| data | 是 | Array(Object) |  |
-| data[].name | 是 | String | 表单名称（对外名称） |
-| data[].token | 是 | String |  |
-| data[].tags | 是 | Array(String) | 当前身份为该表单打的标签（企业令牌为所有成员的标签合集） |
-| data[].created_at | 是 | DateTime |  |
-| data[].entries_count | 是 | Integer | 表单数据量 |
-| data[].last_entry_created_at | 是 | DateTime / null | 最近一次收到数据的时间（UTC）；从未收到数据时为 null |
-| data[].creator | 是 | Object |  |
-| data[].creator.name | 否 | String / null | 创建者姓名（无姓名时为昵称） |
-| data[].transactions | 否 | Object | 收款统计，按交易状态分组（`include_transactions=true` 且表单绑定了收款账户时出现）。目前只有 `paid` 一组： 交易状态为已支付或退款中的数据，按订单总额累计（不扣除退款）；已退款与部分退款的数据不计入。这不是净收入报表。 金额为 0 不代表不是收款表单。 |
-| data[].transactions.paid | 是 | Object |  |
-| data[].transactions.paid.amount | 是 | Number | 该组数据的订单总额之和（元） |
-| data[].transactions.paid.count | 是 | Integer | 该组数据的条数 |
-| next | 是 | String / null | 下一页游标：默认排序下为表单 id，传 `sort` 时为 `row:<偏移量>`；末页为 null |
+| total | 是 | Integer | 符合条件的表单总数（含共享的表单） |
+| count | 是 | Integer | 本次请求返回的表单数量 |
+| data | 是 | Array(Object) | 表单信息数组 |
+| data[].name | 是 | String | 表单名称 |
+| data[].token | 是 | String | 表单Token |
+| data[].tags | 是 | Array(String) | 表单对应的标签 |
+| data[].created_at | 是 | DateTime | 表单创建时间 |
+| data[].entries_count | 是 | Integer | 表单的数据条数 |
+| data[].last_entry_created_at | 是 | DateTime / null | 最近一条数据的提交时间；从未收到数据时为 null |
+| data[].creator | 是 | Object | 表单创建者 |
+| data[].creator.name | 否 | String / null | 表单创建者的name/nickname |
+| data[].transactions | 否 | Object | 收款统计；仅 `include_transactions=true` 且表单绑定了收款账户时返回 |
+| data[].transactions.paid | 是 | Object | 已支付和退款中的数据统计，金额不扣除退款 |
+| data[].transactions.paid.amount | 是 | Number | 订单总额之和，单位：元 |
+| data[].transactions.paid.count | 是 | Integer | 数据条数 |
+| next | 是 | String / null | 分页参数。原样传回即可请求下一页数据；null 表示没有下一页 |
 
 <!-- /openapi -->
 
@@ -121,12 +121,12 @@ GET https://jinshuju.net/api/v1/forms?next=60cc514761936ced06123456
 
 | 状态码 | 说明 |
 | ------ | ------ |
-| 200 | 表单列表 |
-| 400 | 请求参数或数据不合法 |
-| 401 | 未认证：令牌无效或已撤销 |
-| 402 | 当前套餐不包含 API v1 能力 |
-| 403 | 无权限：OAuth 令牌 scope 不足，或操作被业务规则拒绝 |
-| 429 | 超过速率限制 |
+| 200 | 获取成功 |
+| 400 | 参数不合法，如 `filters` / `sort` 格式错误 |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
+| 429 | 超过请求速率限制 |
 
 <!-- /openapi -->
 

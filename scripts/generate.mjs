@@ -1,38 +1,42 @@
 /**
- * Writes the parts of the API pages that openapi.yaml already says, so they
- * follow the API instead of drifting from it.
+ * Keeps the parameter, response and status-code tables of the API pages in
+ * step with openapi.yaml, so they follow the API instead of drifting from it.
  *
- * A page marks each such part with a pair of comments naming what to write and
- * from which operation:
+ * A page marks each such table with a pair of comments naming what it lists and
+ * for which operation:
  *
  *   <!-- openapi:params getFormView -->     path, query and body parameters
  *   <!-- openapi:response getFormView -->   fields of the 2xx response body
  *   <!-- openapi:status getFormView -->     status codes
- *   ...                                     (rewritten on every run)
+ *   | … |
  *   <!-- /openapi -->
  *
- * Everything outside the markers is the page's own: the introduction, plan
+ * The spec decides the rows (which parameters, fields and status codes there
+ * are, in its order) and the 是否必须 and 类型 columns. The 说明 column is the
+ * page's own: these pages are read by people, and a short line written for them
+ * reads better than the spec's description. A row keeps its 说明 by name from
+ * one run to the next; a row the spec adds comes in with an empty one, and the
+ * run fails until somebody writes it (the report quotes the spec's description
+ * to write it from). A row the spec drops goes, with its 说明.
+ *
+ * Everything outside the markers is the page's own too: the introduction, plan
  * table, notes, the JSON examples and the code samples. Which operations get a
  * page at all is decided here, not by the spec.
  *
- * openapi.yaml is in English and the site is in Chinese, so every description
- * goes through spec/openapi.zh-Hans.yaml, keyed by the English text. A string
- * the pages newly need is added there with an empty `zh` and rendered in English
- * meanwhile; one no page needs any more is dropped.
- *
- * Besides writing, it holds the hand-written parts that the runner panel sends
- * to the spec: the request line under `### Request` must name an operation that
+ * Besides that, it holds the hand-written parts that the runner panel sends to
+ * the spec: the request line under `### Request` must name an operation that
  * exists, the sidebar badge must be that operation's method, and the JSON body
  * example must be one the operation takes.
  *
  * Usage:
- *   node scripts/generate.mjs           rewrite pages and the translation table
- *   node scripts/generate.mjs --check   change nothing; fail when anything is out of date
+ *   node scripts/generate.mjs                 rewrite the tables
+ *   node scripts/generate.mjs --check         change nothing; fail when anything is out of date
+ *   node scripts/generate.mjs --rows <page>   change nothing; list the page's rows, each 说明
+ *                                             next to what openapi.yaml says of the row
  */
-import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parse, stringify } from 'yaml';
 import Ajv2020 from 'ajv/dist/2020.js';
 import {
   deref,
@@ -47,14 +51,14 @@ import {
 } from './spec.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-const DOCS = join(ROOT, 'docs');
-const PAGES = join(DOCS, 'api_v1');
-const TRANSLATIONS = join(ROOT, 'spec', 'openapi.zh-Hans.yaml');
+const PAGES = join(ROOT, 'docs', 'api_v1');
 
 /**
- * Schemas that have a page of their own. A field of one of these types gets a
- * link to that page instead of its properties spelled out again: they are long,
- * and the pages group and explain them better than one flat table would.
+ * Schemas that have a page of their own (docs/api_v1/schemas/). A field of one
+ * of these types is not spelled out property by property: they are long, and
+ * their pages group and explain them better than one flat table would. Only the
+ * properties the page itself chooses to list under it stay, for as long as the
+ * spec still has them (in some variant, for a oneOf).
  */
 const SCHEMA_PAGES = {
   FieldDefinition: 'api_v1/schemas/field',
@@ -64,112 +68,49 @@ const SCHEMA_PAGES = {
   FormSettingWriteInput: 'api_v1/schemas/form_setting',
 };
 
-const REGION = /<!-- openapi:(\w+) (\w+) -->\n[\s\S]*?<!-- \/openapi -->/g;
+const REGION = /<!-- openapi:(\w+) (\w+) -->\n([\s\S]*?)<!-- \/openapi -->/g;
 const KINDS = ['params', 'response', 'status'];
-const HEAD = ['| 参数名称 | 是否必须 | 类型 | 说明 |', '| ------ | ------ | ------ | ------ |'];
 
-// ---- Translations ----------------------------------------------------------
+// ---- Table cells -------------------------------------------------------------
 
-const TRANSLATIONS_HEADER = `# Chinese for the English text of openapi.yaml that the API pages show.
-#
-# Keyed by the English text itself, so a string the spec rewords comes back
-# here with an empty \`zh\`. \`npm run generate\` adds what the pages newly need
-# (in the order the pages use it) and drops what they no longer do; while a
-# \`zh\` is empty the page shows the English and \`npm run generate -- --check\` fails.
-# Write \`zh\` as Markdown, the way the spec writes \`en\`.
-`;
-
-class Translations {
-  constructor(file) {
-    this.file = file;
-    this.text = existsSync(file) ? readFileSync(file, 'utf8') : '';
-    this.known = new Map((parse(this.text) ?? []).map(({ en, zh }) => [en, zh ?? '']));
-    this.used = new Map();
-  }
-
-  /** The Chinese for a spec string, or the string itself until someone writes it. */
-  zh(en) {
-    if (!en || !en.trim()) return '';
-    const zh = this.known.get(en) ?? '';
-    this.used.set(en, zh);
-    return zh || en;
-  }
-
-  get missing() {
-    return [...this.used].filter(([, zh]) => !zh).map(([en]) => en);
-  }
-
-  serialize() {
-    const list = [...this.used].map(([en, zh]) => ({ en, zh }));
-    return TRANSLATIONS_HEADER + '\n' + stringify(list, { lineWidth: 0 });
-  }
-}
-
-// ---- Markdown in a table cell ----------------------------------------------
-
-/**
- * Escapes what a table cell of an MDX page cannot hold as is: `|` ends the
- * cell, `{` opens a JSX expression and `<` a JSX tag. Code spans keep their
- * braces and angle brackets, but not their pipes.
- */
+/** `|` ends a cell, `{` opens a JSX expression and `<` a JSX tag in an MDX page. */
 function escapeCell(text) {
-  return text
-    .split(/(`+[^`]*`+)/)
-    .map((part, i) =>
-      i % 2 === 1
-        ? part.replace(/(?<!\\)\|/g, '\\|')
-        : part
-            .replace(/(?<!\\)\|/g, '\\|')
-            .replace(/[{}]/g, (c) => '\\' + c)
-            .replace(/</g, '&lt;')
-    )
-    .join('');
+  return text.replace(/\|/g, '\\|').replace(/[{}]/g, (c) => '\\' + c).replace(/</g, '&lt;');
 }
 
-/**
- * A Markdown description on one line, for a table cell: paragraphs, list items
- * and the rows of a table inside it each become a line of their own.
- */
-function cell(markdown) {
-  if (!markdown) return '';
-  const lines = [];
-  let paragraph = [];
-  const flush = () => {
-    if (paragraph.length) lines.push(paragraph.join(' '));
-    paragraph = [];
-  };
-  for (const raw of markdown.replace(/\r\n/g, '\n').split('\n')) {
-    const line = raw.trim();
-    if (!line) {
-      flush();
-    } else if (/^\|.*\|$/.test(line)) {
-      flush();
-      if (/^\|[\s|:-]+\|$/.test(line)) continue;
-      const cells = line
-        .slice(1, -1)
-        .split(/(?<!\\)\|/)
-        .map((c) => c.trim());
-      lines.push(cells.length === 2 ? `${cells[0]}：${cells[1]}` : cells.join(' · '));
-    } else if (/^([-*+]|\d+\.)\s+/.test(line)) {
-      flush();
-      paragraph.push(line.replace(/^[-*+]\s+/, '• '));
-    } else {
-      paragraph.push(line);
-    }
+const escapeName = (name) => name.replace(/\*/g, '\\*');
+
+/** The 说明 of each row of a table already on the page, by the row's name. */
+function descriptions(table) {
+  const out = new Map();
+  for (const line of table.split('\n')) {
+    if (!/^\|.*\|\s*$/.test(line.trim()) || /^\|[\s|:-]+\|$/.test(line.trim())) continue;
+    const cells = line.trim().slice(1, -1).split(/(?<!\\)\|/).map((c) => c.trim());
+    const name = cells[0].replace(/\\\*/g, '*').replace(/`/g, '');
+    if (name === '参数名称' || name === '状态码') continue;
+    out.set(name, cells[cells.length - 1]);
   }
-  flush();
-  return lines.map(escapeCell).join('<br />');
+  return out;
 }
 
-// ---- What a schema says, in the page's words --------------------------------
+// ---- What a schema says ------------------------------------------------------
 
 const TYPE_NAMES = { string: 'String', integer: 'Integer', number: 'Number', boolean: 'Boolean', object: 'Object', null: 'null' };
+
+/**
+ * The shapes a oneOf / anyOf lets a value take. A member that only constrains
+ * (`anyOf: [{required: [value]}, {required: [name]}]`) is not a shape of its own.
+ */
+function shapesOf(s) {
+  const members = s?.oneOf ?? s?.anyOf ?? [];
+  return members.filter((m) => ['$ref', 'type', 'properties', 'items', 'enum', 'const', 'oneOf', 'anyOf', 'allOf'].some((key) => m[key] !== undefined));
+}
 
 function typeName(spec, node) {
   const s = flat(spec, node);
   if (!s) return 'Any';
-  const variants = s.oneOf ?? s.anyOf;
-  if (variants) return [...new Set(variants.map((v) => typeName(spec, v)))].join(' / ');
+  const shapes = shapesOf(s);
+  if (shapes.length) return [...new Set(shapes.map((v) => typeName(spec, v)))].join(' / ');
   let types = Array.isArray(s.type) ? s.type : s.type ? [s.type] : [];
   if (types.length === 0) {
     if (s.properties || s.additionalProperties) types = ['object'];
@@ -188,70 +129,21 @@ function typeName(spec, node) {
     .join(' / ');
 }
 
-const code = (value) => '`' + (typeof value === 'string' ? value : JSON.stringify(value)) + '`';
-
-/** The constraints a schema states, in a few fixed Chinese phrases. */
-function constraints(spec, node) {
-  const s = flat(spec, node) ?? {};
-  const out = [];
-  const choices = s.enum ?? flat(spec, s.items)?.enum;
-  if (choices) out.push('可选值：' + choices.filter((v) => v !== null).map(code).join('、'));
-  if (s.const !== undefined) out.push('固定为 ' + code(s.const));
-  if (s.default !== undefined) out.push('默认值：' + code(s.default));
-  const range = (min, max, unit = '') =>
-    min !== undefined && max !== undefined
-      ? `${min} ~ ${max}${unit}`
-      : min !== undefined
-        ? `≥ ${min}${unit}`
-        : max !== undefined
-          ? `≤ ${max}${unit}`
-          : undefined;
-  const value = range(s.minimum, s.maximum);
-  if (value) out.push('取值范围：' + value);
-  const length = range(s.minLength, s.maxLength, ' 个字符');
-  if (length) out.push('长度：' + length);
-  const items = range(s.minItems, s.maxItems, ' 项');
-  if (items) out.push('数量：' + items);
-  return out;
-}
-
-const pageTitles = new Map();
-function pageLink(page) {
-  if (!pageTitles.has(page)) {
-    const source = readFileSync(join(DOCS, page + '.md'), 'utf8');
-    pageTitles.set(page, source.match(/^# (.+)$/m)?.[1].trim() ?? page);
-  }
-  return `详见[${pageTitles.get(page)}](/${page})`;
-}
-
-function linkedPage(node) {
-  return SCHEMA_PAGES[schemaName(node)] ?? SCHEMA_PAGES[schemaName(node?.items)];
-}
-
-// ---- Rows ------------------------------------------------------------------
-
-function describe(spec, tr, node, fallback = '') {
+/** What the spec says of a field, quoted when its 说明 is still to be written. */
+function specText(spec, node) {
   const s = flat(spec, node);
-  // An array that says nothing of itself is described by what it holds.
-  const own = node?.description ?? s?.description ?? (s?.items ? flat(spec, s.items)?.description : undefined);
-  const parts = [own === undefined ? escapeCell(fallback) : cell(tr.zh(own))];
-  const rules = constraints(spec, node);
-  if (rules.length) parts.push(escapeCell(rules.join('；')));
-  const page = linkedPage(node) ?? linkedPage(s);
-  if (page) parts.push(pageLink(page));
-  if (s?.deprecated || node?.deprecated) parts.unshift('（已废弃）');
-  return parts.filter(Boolean).join('<br />');
+  return node?.description ?? s?.description ?? (s?.items ? flat(spec, s.items)?.description : undefined) ?? '';
 }
 
-// Rows the spec gives no description for, as `<operation> <region>: <name>`:
-// they are left empty here and are worth fixing in openapi.yaml.
-const gaps = [];
-let rendering = '';
-
-function row(name, required, type, description) {
-  if (!description) gaps.push(`${rendering}: ${name}`);
-  return `| ${name.replace(/\*/g, '\\*')} | ${required ? '是' : '否'} | ${escapeCell(type)} | ${description} |`;
+/** The values an enum (or an array of one) allows, for --rows. */
+function choicesOf(spec, node) {
+  const s = flat(spec, node);
+  return s?.enum ?? flat(spec, s?.items)?.enum;
 }
+
+const hasPage = (node) => Boolean(SCHEMA_PAGES[schemaName(node)] ?? SCHEMA_PAGES[schemaName(node?.items)]);
+
+// ---- Rows --------------------------------------------------------------------
 
 /**
  * The properties of an object schema as rows, nested ones spelled `a.b`, items
@@ -259,78 +151,148 @@ function row(name, required, type, description) {
  * a page of its own, or one already being spelled out above (a cycle), is not
  * gone into.
  */
-function schemaRows(spec, tr, node, prefix, side, seen = new Set()) {
+function schemaRows(spec, node, prefix, side, written, seen = new Set()) {
   const s = flat(spec, node);
   if (!s) return [];
   const required = s.required ?? [];
   const rows = [];
-  const add = (name, child, isRequired, fallback) => {
+  const add = (name, child, isRequired) => {
     const c = flat(spec, child);
     if ((side === 'request' && c?.readOnly) || (side === 'response' && c?.writeOnly)) return;
-    rows.push(row(prefix + name, isRequired, typeName(spec, child), describe(spec, tr, child, fallback)));
-    rows.push(...childRows(spec, tr, child, prefix + name, side, seen));
+    rows.push({ name: prefix + name, required: isRequired, type: typeName(spec, child), spec: specText(spec, child), choices: choicesOf(spec, child) });
+    rows.push(...childRows(spec, child, prefix + name, side, written, seen));
   };
   for (const [name, child] of Object.entries(s.properties ?? {})) add(name, child, required.includes(name));
   const extra = s.additionalProperties;
   if (extra && extra !== false) {
-    // A body that is all map (an entry's field values) has no row of its own
-    // to say what its keys are, so its `*` row says it.
-    const owner = prefix === '' && !s.properties ? s.description : undefined;
-    const values = extra === true ? (owner === undefined ? {} : { description: owner }) : extra;
-    add('*', values, false, '其他键');
+    // A body that is all map (an entry's field values) says what its keys are
+    // in its own description, which no other row carries.
+    const values = extra === true ? { description: prefix === '' && !s.properties ? s.description : undefined } : extra;
+    add('*', values, false);
   }
   return rows;
 }
 
-function childRows(spec, tr, node, path, side, seen) {
-  if (linkedPage(node)) return [];
+function childRows(spec, node, path, side, written, seen) {
   const s = flat(spec, node);
   if (!s) return [];
   const isArray = s.items && (s.type === 'array' || (Array.isArray(s.type) && s.type.includes('array')) || !s.type);
   const inner = isArray ? s.items : node;
-  if (isArray && linkedPage(inner)) return [];
+  const prefix = path + (isArray ? '[].' : '.');
+  if (hasPage(node) || hasPage(inner)) return listedRows(spec, inner, prefix, written);
   const name = schemaName(inner);
   if (name && seen.has(name)) return [];
   const t = flat(spec, inner);
   if (!t?.properties && !(t?.additionalProperties && t.additionalProperties !== true)) return [];
   const next = name ? new Set(seen).add(name) : seen;
-  return schemaRows(spec, tr, inner, path + (isArray ? '[].' : '.'), side, next);
+  return schemaRows(spec, inner, prefix, side, written, next);
 }
 
-function table(rows, empty) {
-  return rows.length ? [...HEAD, ...rows].join('\n') : empty;
+// Rows a page lists under a schema with a page of its own whose property the
+// spec no longer has, as `<page> <operation> <region>: <name>`; they are dropped.
+const dropped = [];
+
+/** The rows the page lists under `prefix`, in its order, each as the spec now has it. */
+function listedRows(spec, node, prefix, written) {
+  const rows = [];
+  for (const name of written.keys()) {
+    if (!name.startsWith(prefix)) continue;
+    const found = resolve(spec, node, name.slice(prefix.length));
+    if (found) rows.push({ name, required: found.required, type: typeName(spec, found.node), spec: specText(spec, found.node), choices: choicesOf(spec, found.node) });
+    else dropped.push(`${rendering}: ${name}`);
+  }
+  return rows;
 }
 
-const RENDER = {
-  params(spec, tr, op) {
+/** The variants a value may take: the shapes of its oneOf / anyOf, then itself. */
+function variants(spec, node) {
+  const s = flat(spec, node);
+  return [...shapesOf(s).map((v) => flat(spec, v)), s].filter(Boolean);
+}
+
+/**
+ * A row name below a schema (`choices[].value`, `*.label`) followed into it:
+ * the node it names, and whether it is required. Every variant of a oneOf is
+ * tried, so the name resolves if any variant has that path.
+ */
+function resolve(spec, node, rest, required = false) {
+  if (rest === '') return { node, required };
+  const [segment, ...more] = rest.split('.');
+  const isArray = segment.endsWith('[]');
+  const key = isArray ? segment.slice(0, -2) : segment;
+  for (const v of variants(spec, node)) {
+    const extra = v.additionalProperties;
+    let child = key === '*' ? (extra && extra !== true ? extra : extra === true ? {} : undefined) : v.properties?.[key];
+    if (child === undefined) continue;
+    if (isArray) child = flat(spec, child)?.items;
+    if (child === undefined) continue;
+    const found = resolve(spec, child, more.join('.'), key !== '*' && (v.required ?? []).includes(key));
+    if (found) return found;
+  }
+  return undefined;
+}
+
+let rendering = '';
+
+const ROWS = {
+  params(spec, op, written) {
     const rows = [];
     for (const p of op.parameters) {
-      const name = p.in === 'path' ? p.name.toUpperCase() : p.name;
       if (p.in !== 'path' && p.in !== 'query') continue;
-      rows.push(row(name, p.in === 'path' || p.required, typeName(spec, p.schema), describe(spec, tr, { ...p.schema, description: p.description ?? p.schema?.description })));
+      rows.push({
+        name: p.in === 'path' ? p.name.toUpperCase() : p.name,
+        required: p.in === 'path' || Boolean(p.required),
+        type: typeName(spec, p.schema),
+        spec: p.description ?? specText(spec, p.schema),
+        choices: choicesOf(spec, p.schema),
+      });
     }
     const body = requestSchema(spec, op);
-    if (body) rows.push(...schemaRows(spec, tr, body, '', 'request'));
-    return table(rows, '本接口没有参数。');
+    if (body) rows.push(...schemaRows(spec, body, '', 'request', written));
+    return rows;
   },
 
-  response(spec, tr, op) {
+  response(spec, op, written) {
     const ok = successResponse(spec, op);
-    if (!ok?.schema) return '响应体为空。';
+    if (!ok?.schema) return [];
     const s = flat(spec, ok.schema);
     const isArray = s?.items && (s.type === 'array' || !s.properties);
-    const rows = isArray ? schemaRows(spec, tr, s.items, '[].', 'response') : schemaRows(spec, tr, ok.schema, '', 'response');
-    return table(rows, '响应体为空。');
+    return isArray ? schemaRows(spec, s.items, '[].', 'response', written) : schemaRows(spec, ok.schema, '', 'response', written);
   },
 
-  status(spec, tr, op) {
-    const codes = Object.keys(op.op.responses ?? {}).sort();
-    const rows = codes.map((status) => `| ${status} | ${cell(tr.zh(deref(spec, op.op.responses[status])?.description))} |`);
-    return ['| 状态码 | 说明 |', '| ------ | ------ |', ...rows].join('\n');
+  status(spec, op) {
+    return Object.keys(op.op.responses ?? {})
+      .sort()
+      .map((code) => ({ name: code, spec: deref(spec, op.op.responses[code])?.description ?? '' }));
   },
 };
 
-// ---- Pages -----------------------------------------------------------------
+const EMPTY = { params: '本接口没有参数。', response: '响应体为空。' };
+
+// Every row rendered, with its 说明 and what the spec says of it, for --rows.
+const listing = [];
+
+/** A region's table: rows from the spec, 说明 from the page. Rows still without a 说明 go to `unwritten`. */
+function table(kind, rows, written, unwritten) {
+  if (rows.length === 0) return EMPTY[kind];
+  const lines =
+    kind === 'status'
+      ? ['| 状态码 | 说明 |', '| ------ | ------ |']
+      : ['| 参数名称 | 是否必须 | 类型 | 说明 |', '| ------ | ------ | ------ | ------ |'];
+  for (const row of rows) {
+    const text = written.get(row.name) ?? '';
+    listing.push({ where: rendering, ...row, text });
+    if (!text) unwritten.push(row);
+    lines.push(
+      kind === 'status'
+        ? `| ${row.name} | ${text} |`
+        : `| ${escapeName(row.name)} | ${row.required ? '是' : '否'} | ${escapeCell(row.type)} | ${text} |`
+    );
+  }
+  return lines.join('\n');
+}
+
+// ---- Pages -------------------------------------------------------------------
 
 function pagesUnder(dir) {
   return readdirSync(dir, { withFileTypes: true })
@@ -339,9 +301,9 @@ function pagesUnder(dir) {
 }
 
 /** The page with every region rewritten, and the regions it has. */
-function render(spec, ops, tr, source, problems, page) {
+function render(spec, ops, source, problems, page) {
   const regions = [];
-  const out = source.replace(REGION, (whole, kind, id) => {
+  const out = source.replace(REGION, (whole, kind, id, current) => {
     const op = ops.get(id);
     if (!KINDS.includes(kind)) {
       problems.push(`${page}: unknown region openapi:${kind} (known: ${KINDS.join(', ')})`);
@@ -352,8 +314,15 @@ function render(spec, ops, tr, source, problems, page) {
       return whole;
     }
     regions.push({ kind, op });
-    rendering = `${id} ${kind}`;
-    return `<!-- openapi:${kind} ${id} -->\n\n${RENDER[kind](spec, tr, op)}\n\n<!-- /openapi -->`;
+    rendering = `${page} ${id} ${kind}`;
+    const written = descriptions(current);
+    const unwritten = [];
+    const body = table(kind, ROWS[kind](spec, op, written), written, unwritten);
+    for (const row of unwritten) {
+      const said = row.spec.replace(/\s+/g, ' ').trim();
+      problems.push(`${page}: ${id} ${kind} \`${row.name}\` has no 说明${said ? ` (openapi.yaml: "${said.length > 160 ? said.slice(0, 160) + '…' : said}")` : ''}`);
+    }
+    return `<!-- openapi:${kind} ${id} -->\n\n${body}\n\n<!-- /openapi -->`;
   });
   return { out, regions };
 }
@@ -453,50 +422,43 @@ function checkPage(spec, ops, page, source, regions, problems) {
   return named;
 }
 
-// ---- Main ------------------------------------------------------------------
+// ---- Main --------------------------------------------------------------------
 
-const check = process.argv.includes('--check');
+const rowsOf = process.argv.includes('--rows') ? process.argv[process.argv.indexOf('--rows') + 1] : undefined;
+const check = process.argv.includes('--check') || rowsOf !== undefined;
 const spec = loadSpec();
 const ops = operations(spec);
-const tr = new Translations(TRANSLATIONS);
 const problems = [];
 const stale = [];
 const documented = new Set();
 
+if (rowsOf !== undefined) {
+  const page = relative(ROOT, join(ROOT, rowsOf));
+  render(spec, ops, readFileSync(join(ROOT, page), 'utf8'), [], page);
+  for (const row of listing) {
+    const said = row.spec.replace(/\s+/g, ' ').trim();
+    console.log(`${row.where.slice(page.length + 1)} | ${row.name} | ${row.type ?? ''}${row.type ? (row.required ? ' | 是' : ' | 否') : ''} | 说明: ${row.text || '（空）'}\n    openapi.yaml: ${said || '（无）'}${row.choices ? `\n    enum: ${row.choices.map(String).join(' / ')}` : ''}`);
+  }
+  process.exit(0);
+}
+
 for (const file of pagesUnder(PAGES)) {
   const page = relative(ROOT, file);
   const source = readFileSync(file, 'utf8');
-  const { out, regions } = render(spec, ops, tr, source, problems, page);
+  const { out, regions } = render(spec, ops, source, problems, page);
   regions.forEach((r) => documented.add(r.op.id));
   checkPage(spec, ops, page, out, regions, problems).forEach((id) => documented.add(id));
   if (out === source) continue;
   stale.push(page);
-  if (!check) writeFileSync(file, out);
+  if (check) problems.push(`${page}: out of date with openapi.yaml; run \`npm run generate\``);
+  else {
+    writeFileSync(file, out);
+    console.log(`updated ${page}`);
+  }
 }
 
-const translations = tr.serialize();
-const tableStale = translations !== tr.text;
-if (tableStale && !check) writeFileSync(TRANSLATIONS, translations);
-
-const missing = tr.missing;
-if (missing.length) {
-  problems.push(
-    `spec/openapi.zh-Hans.yaml: ${missing.length} string(s) have no Chinese yet, so the pages show them in English:\n` +
-      missing.map((en) => `    - ${en.split('\n')[0].slice(0, 100)}`).join('\n')
-  );
-}
-if (check) {
-  for (const page of stale) problems.push(`${page}: out of date with openapi.yaml; run \`npm run generate\``);
-  if (tableStale) problems.push('spec/openapi.zh-Hans.yaml: out of date with the pages; run `npm run generate`');
-} else {
-  for (const page of stale) console.log(`updated ${page}`);
-  if (tableStale) console.log('updated spec/openapi.zh-Hans.yaml');
-}
-
-const undocumented = [...ops.keys()].filter((id) => !documented.has(id));
-console.log(`${documented.size} of ${ops.size} operations have a page; ${undocumented.length} do not.`);
-console.log(`${gaps.length} generated rows have no description in openapi.yaml${process.argv.includes('--gaps') ? ':' : ' (--gaps lists them).'}`);
-if (process.argv.includes('--gaps')) console.log(gaps.map((gap) => `  ${gap}`).join('\n'));
+for (const row of dropped) console.log(`dropped ${row}: openapi.yaml no longer has it`);
+console.log(`${documented.size} of ${ops.size} operations have a page; ${ops.size - documented.size} do not.`);
 if (problems.length) {
   console.error('\n' + problems.map((p) => `- ${p}`).join('\n'));
   process.exit(1);

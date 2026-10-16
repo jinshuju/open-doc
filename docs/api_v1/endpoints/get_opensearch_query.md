@@ -42,7 +42,7 @@ GET https://jinshuju.net/api/v1/opensearch/queries/QUERY_TOKEN
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| QUERY_TOKEN | 是 | String | 对外查询 token（也接受 id） |
+| QUERY_TOKEN | 是 | String | 对外查询 Token（URL 路径参数） |
 
 <!-- /openapi -->
 
@@ -94,48 +94,48 @@ GET https://jinshuju.net/api/v1/opensearch/queries/QUERY_TOKEN
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| token | 是 | String | 对外查询 token |
-| url | 是 | String | 对外查询公开访问地址（/os/\{token\}，使用账户子域名或自定义域名） |
-| name | 是 | String | 名称 |
+| token | 是 | String | 对外查询 Token |
+| url | 是 | String | 公开查询页地址 |
+| name | 是 | String | 查询页标题 |
 | enabled | 是 | Boolean | 是否启用 |
-| form_token | 是 | String / null | 所属表单 token，表单已删除时为 null |
+| form_token | 是 | String / null | 数据来源表单 Token；来源表单已删除时为 `null` |
 | created_at | 是 | DateTime | 创建时间 |
 | searches_count | 是 | Integer | 累计查询次数 |
 | views_count | 是 | Integer | 累计访问次数 |
-| description | 是 | String / null | 说明文字 |
-| status | 是 | String | 状态：active 可用；entries_count_limited 表单数据量超过套餐对外查询上限；form_not_found 表单已删除<br />可选值：`active`、`entries_count_limited`、`form_not_found` |
-| search_field_rules | 是 | Array(Object) | 查询字段规则 |
-| search_field_rules[].operand | 是 | String | 规则内各查询字段的组合方式<br />可选值：`and`、`or`；默认值：`and` |
-| search_field_rules[].search_field_settings | 是 | Array(Object) | 查询字段设置，不能为空<br />数量：≥ 1 项 |
-| search_field_rules[].search_field_settings[].field_api_code | 是 | String | 查询字段 api_code，必须是表单可查询的字段 |
-| search_field_rules[].search_field_settings[].field_label | 否 | String / null | 对外显示的字段标签，为空时用字段原标签 |
-| search_field_rules[].search_field_settings[].fuzzy | 否 | Boolean | 是否模糊匹配<br />默认值：`false` |
-| search_field_rules[].search_field_settings[].sms_verification | 否 | Boolean | 是否需要短信验证（仅对手机字段生效）<br />默认值：`false` |
-| display_field_rules | 是 | Array(Object) | 展示字段规则 |
-| display_field_rules[].field_api_code | 是 | String | 展示字段 api_code，必须是表单可展示的字段 |
-| display_field_rules[].field_label | 是 | String / null | 对外显示的字段标签，为空时用字段原标签 |
-| display_field_rules[].editable | 是 | Boolean | 查询者是否可在结果页编辑该字段<br />默认值：`false` |
-| display_field_rules[].protected | 是 | Boolean | 是否隐私保护（脱敏显示，仅对支持隐私保护的字段生效）<br />默认值：`false` |
-| display_field_rules[].highlight | 是 | Object / null | 高亮设置，未设置时为 null |
-| display_field_rules[].highlight.color | 否 | String / null | 高亮颜色 |
-| display_field_rules[].highlight.position | 否 | Integer | 高亮排序位置<br />默认值：`999` |
-| messages | 是 | Object / null | 已保存的提示文案原始值，未自定义时为空对象或 null |
-| messages.has_result | 否 | String | 查到结果时的提示 |
-| messages.no_result | 否 | String | 未查到结果时的提示 |
-| default_messages | 是 | Object | 合并产品默认文案后的提示文案（按表单语言） |
-| default_messages.has_result | 是 | String | 查到结果时的提示 |
-| default_messages.no_result | 是 | String | 未查到结果时的提示 |
-| search_button | 是 | Object | 查询按钮设置，未设置时为空对象 |
+| description | 是 | String / null | 查询页描述文案 |
+| status | 是 | String | 查询页可用状态：`active` = 正常；`entries_count_limited` = 表单数据量超出套餐的对外查询上限，访问者会看到不可用提示；`form_not_found` = 来源表单已删除。**与 `enabled` 无关**，停用的查询 `status` 仍可能是 `active` |
+| search_field_rules | 是 | Array(Object) | 查询条件组，通常只有一组 |
+| search_field_rules[].operand | 是 | String | 组内多个查询字段的关系：`and` = 全部匹配；`or` = 任一匹配 |
+| search_field_rules[].search_field_settings | 是 | Array(Object) | 访问者需要填写的查询字段 |
+| search_field_rules[].search_field_settings[].field_api_code | 是 | String | 查询字段的 `api_code` |
+| search_field_rules[].search_field_settings[].field_label | 否 | String / null | 展示给访问者的自定义标签；未设置为 `null` |
+| search_field_rules[].search_field_settings[].fuzzy | 否 | Boolean | `true` = 包含匹配；`false` = 精确匹配 |
+| search_field_rules[].search_field_settings[].sms_verification | 否 | Boolean | 查询前是否要求短信验证（仅手机号字段生效） |
+| display_field_rules | 是 | Array(Object) | 命中数据展示的字段，按展示顺序 |
+| display_field_rules[].field_api_code | 是 | String | 展示字段的 `api_code` |
+| display_field_rules[].field_label | 是 | String / null | 自定义标签；未设置为 `null` |
+| display_field_rules[].editable | 是 | Boolean | 是否允许访问者在结果页编辑该字段值 |
+| display_field_rules[].protected | 是 | Boolean | 是否对值做隐私脱敏（如 张*三） |
+| display_field_rules[].highlight | 是 | Object / null | 高亮设置；未设置为 `null` |
+| display_field_rules[].highlight.color | 否 | String / null | 高亮颜色（CSS 颜色值） |
+| display_field_rules[].highlight.position | 否 | Integer | 多个高亮字段间的排序，越小越靠前 |
+| messages | 是 | Object / null | 已存下来的结果文案；未设置的 key 不出现 |
+| messages.has_result | 否 | String | 查到结果时的提示文案 |
+| messages.no_result | 否 | String | 未查到结果时的提示文案 |
+| default_messages | 是 | Object | 回落默认值之后的实际生效文案 |
+| default_messages.has_result | 是 | String | 查到结果时的提示文案 |
+| default_messages.no_result | 是 | String | 未查到结果时的提示文案 |
+| search_button | 是 | Object | 查询按钮外观，包含 `text` / `color`；未设置时为 `{}` |
 | search_button.text | 否 | String | 按钮文字 |
 | search_button.color | 否 | String | 按钮颜色 |
-| allow_to_export_results | 是 | Boolean | 是否允许查询者导出结果 |
+| allow_to_export_results | 是 | Boolean | 是否允许访问者导出查询结果 |
 | header | 是 | Object | 页头设置 |
-| header.background_image | 是 | Object / null | 页头背景图，未设置时为 null |
-| header.background_image.attachment_id | 是 | String | 背景图附件 id |
+| header.background_image | 是 | Object / null | 页头背景图；未设置为 `null` |
+| header.background_image.attachment_id | 是 | String | 背景图附件 ID |
 | header.background_image.position_x | 是 | Number / null | 背景图横向位置 |
 | header.background_image.position_y | 是 | Number / null | 背景图纵向位置 |
 | header.background_image.image_url | 是 | String / null | 背景图地址 |
-| updated_at | 是 | DateTime | 更新时间 |
+| updated_at | 是 | DateTime | 最后更新时间 |
 
 <!-- /openapi -->
 
@@ -145,11 +145,11 @@ GET https://jinshuju.net/api/v1/opensearch/queries/QUERY_TOKEN
 
 | 状态码 | 说明 |
 | ------ | ------ |
-| 200 | 对外查询详情 |
-| 401 | 未认证：令牌无效或已撤销 |
-| 402 | 当前套餐不包含 API v1 能力 |
-| 403 | 无权限：OAuth 令牌 scope 不足，或操作被业务规则拒绝 |
-| 404 | 资源不存在或当前身份不可访问（个人令牌只能访问自己创建或被共享的表单） |
+| 200 | 获取成功 |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
+| 404 | 对外查询不存在，或不是当前调用方创建的 |
 
 <!-- /openapi -->
 

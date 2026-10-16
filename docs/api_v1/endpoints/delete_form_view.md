@@ -44,8 +44,8 @@ DELETE https://jinshuju.net/api/v1/forms/FORM_TOKEN/views/VIEW_TOKEN
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| FORM_TOKEN | 是 | String | 表单 token（`GET /forms` 返回的 `token`），也接受 24 位十六进制的表单 id。 |
-| VIEW_TOKEN | 是 | String | 视图 token |
+| FORM_TOKEN | 是 | String | 表单 Token（URL 路径参数） |
+| VIEW_TOKEN | 是 | String | 视图 Token（URL 路径参数） |
 
 <!-- /openapi -->
 
@@ -63,7 +63,7 @@ DELETE https://jinshuju.net/api/v1/forms/FORM_TOKEN/views/VIEW_TOKEN
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| token | 是 | String | 被删除视图的 token |
+| token | 是 | String | 被删除的视图 Token |
 
 <!-- /openapi -->
 
@@ -74,11 +74,11 @@ DELETE https://jinshuju.net/api/v1/forms/FORM_TOKEN/views/VIEW_TOKEN
 | 状态码 | 说明 |
 | ------ | ------ |
 | 200 | 删除成功 |
-| 401 | 未认证：令牌无效或已撤销 |
-| 402 | 当前套餐不包含 API v1 能力 |
-| 403 | 无权限：OAuth 令牌 scope 不足，或操作被业务规则拒绝 |
-| 404 | 资源不存在或当前身份不可访问（个人令牌只能访问自己创建或被共享的表单） |
-| 422 | 请求无法处理（视图数量达到上限、筛选条件不合法、模型校验失败、不允许删除等），响应体为 \{ error_description \} |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API，或当前账户不支持自定义视图 |
+| 403 | 无权限（如 OAuth scope 不足，或无权删除表单视图） |
+| 404 | 表单或视图不存在，或无权访问 |
+| 422 | 不可删除：系统预设视图、`view_scope` 为 `form` 的视图、最后一个可见视图 |
 
 <!-- /openapi -->
 

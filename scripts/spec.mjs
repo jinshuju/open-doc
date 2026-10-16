@@ -91,11 +91,22 @@ export function flat(spec, node) {
   return out;
 }
 
-/** The JSON request body schema of an operation, or of its multipart form when that is all it takes. */
+/**
+ * The request body schema of an operation. One that takes several content types
+ * (an upload as multipart or as JSON) takes the keys of any of them, and requires
+ * only what all of them require.
+ */
 export function requestSchema(spec, op) {
   const content = deref(spec, op.op.requestBody)?.content;
   if (!content) return undefined;
-  return (content['application/json'] ?? content['multipart/form-data'] ?? Object.values(content)[0])?.schema;
+  const schemas = Object.values(content).map((c) => c.schema).filter(Boolean);
+  if (schemas.length < 2) return schemas[0];
+  const flats = schemas.map((s) => flat(spec, s) ?? {});
+  return {
+    type: 'object',
+    properties: Object.assign({}, ...flats.map((s) => s.properties ?? {})),
+    required: flats.map((s) => s.required ?? []).reduce((all, some) => all.filter((key) => some.includes(key))),
+  };
 }
 
 /** The first 2xx response of an operation: its status code and body schema (none for an empty body). */

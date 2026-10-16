@@ -43,7 +43,7 @@ GET https://jinshuju.net/api/v1/opensearch/queries?form_token=FORM_TOKEN
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| form_token | 否 | String | 按表单 token 过滤 |
+| form_token | 否 | String | 只返回该表单下的对外查询（Query 参数） |
 
 <!-- /openapi -->
 
@@ -71,13 +71,13 @@ GET https://jinshuju.net/api/v1/opensearch/queries?form_token=FORM_TOKEN
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| count | 是 | Integer | 返回的查询数量 |
-| data | 是 | Array(Object) |  |
-| data[].token | 是 | String | 对外查询 token |
-| data[].url | 是 | String | 对外查询公开访问地址（/os/\{token\}，使用账户子域名或自定义域名） |
-| data[].name | 是 | String | 名称 |
-| data[].enabled | 是 | Boolean | 是否启用 |
-| data[].form_token | 是 | String / null | 所属表单 token，表单已删除时为 null |
+| count | 是 | Integer | 本次返回的查询数量 |
+| data | 是 | Array(Object) | 对外查询数组 |
+| data[].token | 是 | String | 对外查询 Token，用于后续获取/编辑 |
+| data[].url | 是 | String | 访问者打开的公开查询页地址；账号开启自定义域名（cname）时会使用自定义域名 |
+| data[].name | 是 | String | 查询页标题 |
+| data[].enabled | 是 | Boolean | 查询页是否启用 |
+| data[].form_token | 是 | String / null | 数据来源表单的 Token；来源表单已被删除时为 `null` |
 | data[].created_at | 是 | DateTime | 创建时间 |
 | data[].searches_count | 是 | Integer | 累计查询次数 |
 | data[].views_count | 是 | Integer | 累计访问次数 |
@@ -90,11 +90,11 @@ GET https://jinshuju.net/api/v1/opensearch/queries?form_token=FORM_TOKEN
 
 | 状态码 | 说明 |
 | ------ | ------ |
-| 200 | 对外查询列表 |
-| 401 | 未认证：令牌无效或已撤销 |
-| 402 | 当前套餐不包含 API v1 能力 |
-| 403 | 无权限：OAuth 令牌 scope 不足，或操作被业务规则拒绝 |
-| 404 | 资源不存在或当前身份不可访问（个人令牌只能访问自己创建或被共享的表单） |
+| 200 | 获取成功 |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
+| 404 | `form_token` 指向的表单不存在或无权访问 |
 
 <!-- /openapi -->
 

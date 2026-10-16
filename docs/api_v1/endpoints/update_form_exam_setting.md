@@ -58,17 +58,17 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN/exam_setting
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| FORM_TOKEN | 是 | String | 表单 token（`GET /forms` 返回的 `token`），也接受 24 位十六进制的表单 id。 |
-| notice_after_filling_mode | 否 | String | 套餐不支持显示成绩时会被强制写为 none<br />可选值：`appreciation`、`grade`、`explaination`、`none`、`answer` |
-| show_timeout | 否 | Boolean | 开启限时答题。与考试题目字段的 required 互斥：表单已有必填题目时传 true 返回 400；开启后题目字段不能再设必填（考生信息字段的必填不受影响） |
-| limited_time | 否 | Integer | 限时分钟数<br />取值范围：1 ~ 9999 |
-| need_attention | 否 | String |  |
-| success_message_rich_text | 否 | String | 交卷后提示富文本；仅套餐支持显示成绩时写入 |
-| interval_comments | 否 | Array(Object) | 整体替换区间评语；需互不重叠。仅 notice_after_filling_mode 为 grade / explaination / answer 时生效，空数组被忽略 |
-| interval_comments[].start_point | 否 | Number |  |
-| interval_comments[].end_point | 否 | Number | 不小于 start_point |
-| interval_comments[].comment | 否 | String |  |
-| interval_comments[].retry | 否 | Boolean |  |
+| FORM_TOKEN | 是 | String | 表单 Token（URL 路径参数） |
+| notice_after_filling_mode | 否 | String | 交卷后展示：`grade` / `explaination` / `answer` / `none`（`appreciation` 已弃用）。传入其他值返回 400 |
+| show_timeout | 否 | Boolean | 是否开启限时答题 |
+| limited_time | 否 | Integer | 考试限时（分钟），默认 30；配合 `show_timeout` 使用 |
+| need_attention | 否 | String | 考前须知内容 |
+| success_message_rich_text | 否 | String | 交卷后提示语（富文本）；套餐不支持展示成绩时忽略 |
+| interval_comments | 否 | Array(Object) | 分数区间评语，**REPLACE 语义**，空数组被忽略；仅交卷后展示为 `grade` / `explaination` / `answer` 时生效 |
+| interval_comments[].start_point | 否 | Number | 分数区间左端（含） |
+| interval_comments[].end_point | 否 | Number | 分数区间右端（含），必须 >= `start_point`，且不得与其他区间交叉 |
+| interval_comments[].comment | 否 | String | 该区间展示的评语 |
+| interval_comments[].retry | 否 | Boolean | 该区间是否允许再答一次，默认 `false` |
 
 <!-- /openapi -->
 
@@ -93,15 +93,15 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN/exam_setting
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| notice_after_filling_mode | 否 | String | 交卷后展示内容<br />可选值：`appreciation`、`grade`、`explaination`、`none`、`answer` |
-| show_timeout | 否 | Boolean | 是否限时答题 |
-| limited_time | 否 | Integer | 限时分钟数 |
-| need_attention | 否 | String | 考前须知 |
-| interval_comments | 否 | Array(Object) | 分数区间评语；仅在已开启区间评语时返回 |
-| interval_comments[].start_point | 否 | Number | 区间起点（含） |
-| interval_comments[].end_point | 否 | Number | 区间终点（含），不小于 start_point |
-| interval_comments[].comment | 否 | String | 评语内容（富文本） |
-| interval_comments[].retry | 否 | Boolean | 是否允许重新作答 |
+| notice_after_filling_mode | 否 | String | 交卷后展示：`grade` = 显示成绩；`explaination` = 成绩 + 答案解析；`answer` = 仅展示对错；`none` = 不显示；`appreciation` = 感谢参与文案（已弃用）。当前套餐不支持时该值恒为 `none` |
+| show_timeout | 否 | Boolean | 是否开启限时答题 |
+| limited_time | 否 | Integer | 考试限时（分钟），配合 `show_timeout` 生效 |
+| need_attention | 否 | String | 考前须知内容 |
+| interval_comments | 否 | Array(Object) | 分数区间评语；未开启区间评语时不返回该字段 |
+| interval_comments[].start_point | 否 | Number | 分数区间左端（含） |
+| interval_comments[].end_point | 否 | Number | 分数区间右端（含） |
+| interval_comments[].comment | 否 | String | 该区间展示的评语 |
+| interval_comments[].retry | 否 | Boolean | 该区间是否允许再答一次 |
 
 <!-- /openapi -->
 
@@ -111,12 +111,12 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN/exam_setting
 
 | 状态码 | 说明 |
 | ------ | ------ |
-| 200 | 保存后的考试设置 |
-| 400 | 请求参数或数据不合法 |
-| 401 | 未认证：令牌无效或已撤销 |
-| 402 | 当前套餐不包含 API v1 能力 |
-| 403 | 无权限：OAuth 令牌 scope 不足，或操作被业务规则拒绝 |
-| 404 | 资源不存在或当前身份不可访问（个人令牌只能访问自己创建或被共享的表单） |
+| 200 | 更新成功 |
+| 400 | 该表单不是考试场景的表单；或参数不合法（枚举值不支持、分数区间交叉等），错误详情见 `error_description` |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
+| 404 | 表单不存在或无权访问 |
 
 <!-- /openapi -->
 

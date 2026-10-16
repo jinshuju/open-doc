@@ -54,8 +54,8 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN/folder
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| FORM_TOKEN | 是 | String | 表单 token（`GET /forms` 返回的 `token`），也接受 24 位十六进制的表单 id。 |
-| folder_token | 是 | String / null | 目标文件夹 token；null 表示移出文件夹 |
+| FORM_TOKEN | 是 | String | 表单 Token（URL 路径参数） |
+| folder_token | 是 | String / null | 目标文件夹 token；传 `null` 表示移出文件夹；**字段必须存在**，否则返回 400 |
 
 <!-- /openapi -->
 
@@ -74,8 +74,8 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN/folder
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| form_token | 是 | String |  |
-| folder_token | 是 | String / null | 移动后所在文件夹 token；移出时为 null |
+| form_token | 是 | String | 表单 Token |
+| folder_token | 是 | String / null | 表单当前所在文件夹 token；`null` 表示不在任何文件夹 |
 
 <!-- /openapi -->
 
@@ -85,12 +85,12 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN/folder
 
 | 状态码 | 说明 |
 | ------ | ------ |
-| 200 | 移动结果 |
-| 400 | 请求参数或数据不合法 |
-| 401 | 未认证：令牌无效或已撤销 |
-| 402 | 当前套餐不包含 API v1 能力 |
-| 403 | 无权限：OAuth 令牌 scope 不足，或操作被业务规则拒绝 |
-| 404 | 资源不存在或当前身份不可访问（个人令牌只能访问自己创建或被共享的表单） |
+| 200 | 成功 |
+| 400 | 请求体缺少 `folder_token` 字段，或文件夹类型与表单不符 |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
+| 404 | 表单不存在或无权访问；或指定的文件夹不存在/无权管理 |
 
 <!-- /openapi -->
 

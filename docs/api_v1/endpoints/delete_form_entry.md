@@ -41,7 +41,7 @@ DELETE https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries/SERIAL_NUMBER
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| FORM_TOKEN | 是 | String | 表单 token（`GET /forms` 返回的 `token`），也接受 24 位十六进制的表单 id。 |
+| FORM_TOKEN | 是 | String | 表单Token |
 | SERIAL_NUMBER | 是 | Integer | 数据序号 |
 
 <!-- /openapi -->
@@ -58,7 +58,7 @@ DELETE https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries/SERIAL_NUMBER
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| serial_number | 是 | Integer |  |
+| serial_number | 是 | Integer | 数据序号（标识符） |
 
 <!-- /openapi -->
 
@@ -69,12 +69,12 @@ DELETE https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries/SERIAL_NUMBER
 | 状态码 | 说明 |
 | ------ | ------ |
 | 200 | 删除成功 |
-| 400 | 请求参数或数据不合法 |
-| 401 | 未认证：令牌无效或已撤销 |
-| 402 | 当前套餐不包含 API v1 能力 |
-| 403 | 无权限：OAuth 令牌 scope 不足，或操作被业务规则拒绝 |
-| 404 | 资源不存在或当前身份不可访问（个人令牌只能访问自己创建或被共享的表单） |
-| 429 | 超过速率限制 |
+| 400 | 删除失败（如表单状态不允许删除） |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
+| 404 | 表单或数据不存在，或无权访问 |
+| 429 | 超过请求速率限制 |
 
 <!-- /openapi -->
 

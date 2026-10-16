@@ -84,50 +84,57 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| FORM_TOKEN | 是 | String | 表单 token（`GET /forms` 返回的 `token`），也接受 24 位十六进制的表单 id。 |
-| name | 否 | String |  |
-| description | 否 | String / null |  |
-| setting | 否 | Object | 创建 / 编辑表单时的 `setting`，只接受以下键，其他键忽略。写入的是「结果状态」：省略的键保持原值，传 `null` 表示清除。<br />• 只传 `success_message` 会自动把 `success_message_style` 设为 `text`；只传 `success_message_rich_text` 则设为 `rich_text`。<br />• `submission_region_limited=true` 需要套餐包含「填写地域限制」，且 `submission_regions` 至少一项。<br />• `merchant_account_id`（小金商户）不能与 `wxpay_account_id` / `alipay_account_id` 同时绑定；新传入的支付账户必须属于当前企业账户，绑定后 `payment_way` 自动为 `third_party`。<br />• `notification_rules` 整体替换由 API 创建的通知规则（传 `[]` 即清空），不影响桌面端创建的规则。<br />详见[API V1 表单设置 Schema](/api_v1/schemas/form_setting) |
-| fields | 否 | Object | 字段增量操作，至少一个子键非空才生效 |
-| fields.add | 否 | Array(Object) | 新增字段；可带 `position`（0 起）指定插入位置，缺省追加到末尾 |
-| fields.remove | 否 | Array(String) | 要删除的字段 api_code；不存在时返回 400 |
-| fields.update | 否 | Array(Object) | 按 api_code 定位已有字段做修改，只处理出现的键；类型专属属性写在不适用的类型上会被忽略<br />详见[API V1 字段结构 Schema](/api_v1/schemas/field) |
-| fields.update_choices | 否 | Array(Object) | 对某个选项类字段（或矩阵 / 表格中的选项列）的选项做增量修改；字段不存在或不支持选项时返回 400 |
-| fields.update_choices[].field_api_code | 是 | String |  |
-| fields.update_choices[].add | 否 | Array(Any) | 选项；value 与 name 等价，任填其一 |
-| fields.update_choices[].add[].value | 否 | String | 选项显示值 |
-| fields.update_choices[].add[].name | 否 | String | 与 value 等价 |
-| fields.update_choices[].add[].api_code | 否 | String | 指定选项 api_code；缺省由服务端生成，编辑时用于保留身份 |
-| fields.update_choices[].add[].quota | 否 | Integer | 名额上限；不限名额时省略<br />取值范围：≥ 1 |
-| fields.update_choices[].add[].operand_value | 否 | Number | 选项赋值 |
-| fields.update_choices[].add[].selected | 否 | Boolean | 默认选中 |
-| fields.update_choices[].add[].is_other | 否 | Boolean | 设为其他选项（选中后出现填写框），文字照原样保留；文字正好是 `其他` 或 `其它` 的选项不用设。只用于 RadioButton / CheckBox / DropDown |
-| fields.update_choices[].remove | 否 | Array(String / Object) | 要删除的选项 api_code（或显示值），也可写成 `{"api_code": "..."}` |
-| fields.update_choices[].update | 否 | Array(Object) |  |
-| fields.update_choices[].update[].api_code | 是 | String |  |
-| fields.update_choices[].update[].value | 否 | String | 新显示值 |
-| fields.update_choices[].update[].operand_value | 否 | Number |  |
-| fields.update_choices[].update[].selected | 否 | Boolean |  |
-| field_rules | 否 | Object | 字段规则增量操作，`remove` / `update` 以 `GET /forms/{form_token}/field_rules` 返回的 0 起 `index` 定位；同一 index 不能同时删除和更新 |
-| field_rules.add | 否 | Array(Object) |  |
-| field_rules.add[].index | 否 | Integer | 仅 update 操作使用：要修改的规则下标（0 起） |
-| field_rules.add[].targets | 否 | Array(String) | 受影响字段的 api_code；`targets_display_mode=abort` 时可省略 |
-| field_rules.add[].targets_display_mode | 否 | String | `show` / `abort`，默认 show<br />可选值：`show`、`abort` |
-| field_rules.add[].operator | 否 | String | 条件之间的关系，默认 or<br />可选值：`or`、`and` |
-| field_rules.add[].conditions | 否 | Array(Object) |  |
-| field_rules.add[].conditions[].trigger | 是 | String | 触发字段 api_code |
-| field_rules.add[].conditions[].comparator | 否 | String | 比较符，缺省取该字段支持的第一个；不支持时返回 400 并列出可用比较符 |
-| field_rules.add[].conditions[].value | 否 | Any | 比较值 |
-| field_rules.remove | 否 | Array(Integer) |  |
-| field_rules.update | 否 | Array(Object) |  |
-| field_rules.update[].index | 否 | Integer | 仅 update 操作使用：要修改的规则下标（0 起） |
-| field_rules.update[].targets | 否 | Array(String) | 受影响字段的 api_code；`targets_display_mode=abort` 时可省略 |
-| field_rules.update[].targets_display_mode | 否 | String | `show` / `abort`，默认 show<br />可选值：`show`、`abort` |
-| field_rules.update[].operator | 否 | String | 条件之间的关系，默认 or<br />可选值：`or`、`and` |
-| field_rules.update[].conditions | 否 | Array(Object) |  |
-| field_rules.update[].conditions[].trigger | 是 | String | 触发字段 api_code |
-| field_rules.update[].conditions[].comparator | 否 | String | 比较符，缺省取该字段支持的第一个；不支持时返回 400 并列出可用比较符 |
-| field_rules.update[].conditions[].value | 否 | Any | 比较值 |
+| FORM_TOKEN | 是 | String | 表单 Token（URL 路径参数） |
+| name | 否 | String | 表单名称 |
+| description | 否 | String / null | 表单描述 |
+| setting | 否 | Object | 表单设置对象，涵盖提交后行为、表单状态、提交限制、权限、Webhook、通知规则等。完整字段见[表单设置 Schema](/api_v1/schemas/form_setting)。仅传入的 key 会被更新，未提交的 key 保持原值；但 `setting.notification_rules` 是 **REPLACE 语义**——传该字段会清除当前 API 创建的所有通知规则后重建。 |
+| fields | 否 | Object | 字段操作聚合对象，包含 `add` / `remove` / `update` / `update_choices` 四个子键 |
+| fields.add | 否 | Array(Object) | 要新增的字段；结构同[创建表单](/api_v1/endpoints/create_form)的 `fields`；可额外指定 `position` 指定插入位置（0-based） |
+| fields.remove | 否 | Array(String) | 要删除的字段的 `api_code` 数组 |
+| fields.update | 否 | Array(Object) | 字段属性更新数组 |
+| fields.update[].api_code | 是 | String | 要更新的字段 `api_code` |
+| fields.update[].label | 否 | String | 新的字段标题 |
+| fields.update[].required | 否 | Boolean | 是否必填，与 `private` 互斥 |
+| fields.update[].private | 否 | Boolean | 是否隐藏；设为 true 会自动清空校验 |
+| fields.update[].notes | 否 | String / null | 新的描述/提示 |
+| fields.update[].rating_max | 否 | Integer | 评分题新的最大分 |
+| fields.update[].dimensions | 否 | Array(Object) | 表格题列替换，需带 `api_code` 以保留列身份 |
+| fields.update_choices | 否 | Array(Object) | 选项增删改；适用于单选/多选/下拉，以及表格题列（下拉/多选列） |
+| fields.update_choices[].field_api_code | 是 | String | 要改的字段 `api_code`（表格题列则传列的 `api_code`） |
+| fields.update_choices[].add | 否 | Array(Object) | 要新增的选项 |
+| fields.update_choices[].add[].value | 否 | String | 选项展示值，与 `name` 二选一 |
+| fields.update_choices[].add[].name | 否 | String | 同 `value` |
+| fields.update_choices[].add[].api_code | 否 | String | 选项 `api_code`；不传则由服务端生成 |
+| fields.update_choices[].add[].quota | 否 | Integer | 选项可选配额上限 |
+| fields.update_choices[].add[].operand_value | 否 | Number | 选项赋值；字段开启 `calculable` 时必传 |
+| fields.update_choices[].add[].selected | 否 | Boolean | 是否默认选中 |
+| fields.update_choices[].add[].is_other | 否 | Boolean | 设为「其他」选项（选中后出现填写框）；仅单选 / 多选 / 下拉 |
+| fields.update_choices[].remove | 否 | Array(String / Object) | 要删除的选项（按 `api_code`） |
+| fields.update_choices[].update | 否 | Array(Object) | 要修改的选项（按 `api_code`），可改 `value` / `operand_value` / `selected` |
+| fields.update_choices[].update[].api_code | 是 | String | 要修改的选项 `api_code` |
+| fields.update_choices[].update[].value | 否 | String | 新的选项展示值 |
+| fields.update_choices[].update[].operand_value | 否 | Number | 新的选项赋值 |
+| fields.update_choices[].update[].selected | 否 | Boolean | 是否默认选中 |
+| field_rules | 否 | Object | 字段显示规则操作聚合对象，包含 `add` / `update` / `remove` 三个子键。见下方「字段显示规则」 |
+| field_rules.add | 否 | Array(Object) | 要新增的规则，追加到规则列表末尾 |
+| field_rules.add[].index | 否 | Integer | 仅 `update` 使用，新增时不需要传 |
+| field_rules.add[].targets | 否 | Array(String) | 条件满足时显示的字段 `api_code`；`targets_display_mode` 为 `show` 时必传，`abort` 时忽略 |
+| field_rules.add[].targets_display_mode | 否 | String | `show` = 条件满足时显示 `targets` 中的字段；`abort` = 条件满足时终止填写 |
+| field_rules.add[].operator | 否 | String | 多个条件之间的关系：`and` 全部满足 / `or` 任一满足，默认 `or` |
+| field_rules.add[].conditions | 否 | Array(Object) | 触发条件数组 |
+| field_rules.add[].conditions[].trigger | 是 | String | 触发字段的 `api_code` |
+| field_rules.add[].conditions[].comparator | 否 | String | 比较符，必须与触发字段类型匹配，否则请求被拒绝；省略时取该字段类型的默认比较符。取值见[获取表单字段规则](/api_v1/endpoints/get_form_field_rules) |
+| field_rules.add[].conditions[].value | 否 | Any | 比较值，形态取决于 `comparator` |
+| field_rules.remove | 否 | Array(Integer) | 要删除的规则的 `index` 数组；其余规则保持不变 |
+| field_rules.update | 否 | Array(Object) | 按 `index` 原地修改已有规则；只有传入的 key 会变 |
+| field_rules.update[].index | 否 | Integer | 要修改的规则的 0 起序号，来自[获取表单字段规则](/api_v1/endpoints/get_form_field_rules) |
+| field_rules.update[].targets | 否 | Array(String) | 条件满足时显示的字段 `api_code`；传入时整体替换 |
+| field_rules.update[].targets_display_mode | 否 | String | `show` = 条件满足时显示 `targets` 中的字段；`abort` = 条件满足时终止填写 |
+| field_rules.update[].operator | 否 | String | 多个条件之间的关系：`and` 全部满足 / `or` 任一满足 |
+| field_rules.update[].conditions | 否 | Array(Object) | 触发条件数组；传入时整体替换 |
+| field_rules.update[].conditions[].trigger | 是 | String | 触发字段的 `api_code` |
+| field_rules.update[].conditions[].comparator | 否 | String | 比较符，必须与触发字段类型匹配，否则请求被拒绝；省略时取该字段类型的默认比较符。取值见[获取表单字段规则](/api_v1/endpoints/get_form_field_rules) |
+| field_rules.update[].conditions[].value | 否 | Any | 比较值，形态取决于 `comparator` |
 
 <!-- /openapi -->
 
@@ -150,13 +157,13 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN
 
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| name | 是 | String |  |
-| token | 是 | String |  |
-| url | 是 | String | 表单对外填写地址（按企业账户的自定义域名 / 子域名生成，不能由 token 推算） |
-| description | 是 | String / null | 表单描述（可能是 HTML 富文本） |
-| fields | 是 | Array(Object) | 字段列表，按表单中的顺序排列；每个元素是以字段 api_code 为唯一键的对象 |
-| fields[].\* | 否 | Object | 字段定义。所有字段都有 `label` / `api_code_alias` / `type` / `notes` / `private` / `validation`，其余属性按 `type` 出现。<br />`type` 取值与字段的对应关系：<br />type：字段<br />`single_line_text`：单行文字<br />`paragraph_text`：多行文字<br />`name` / `id_card` / `mobile` / `email` / `phone` / `link` / `address` / `geo_location`：姓名 / 身份证 / 手机 / 邮箱 / 电话 / 网址 / 地址 / 地理位置<br />`single_choice` / `multiple_choice` / `drop_down` / `cascade_drop_down`：单选 / 多选 / 下拉 / 多级下拉（颜色标记也是 `drop_down`）<br />`image_radio_button` / `image_check_box`：图片单选 / 图片多选<br />`number` / `formula` / `rating` / `nps` / `boolean`：数字 / 计算 / 评分 / NPS / 是否<br />`date_time` / `date` / `time`：日期 / 日期（旧）/ 时间<br />`attachment` / `audio` / `e_signature`：上传文件 / 语音 / 电子签名<br />`likert` / `matrix` / `matrix_scale` / `table` / `multiple_blanks` / `sort`：矩阵单选 / 矩阵填空 / 矩阵量表 / 表格 / 横向填空 / 排序<br />`goods` / `reservation`：商品 / 预约<br />`form_association` / `reversed_association`：表单关联 / 反向关联<br />详见[API V1 字段结构 Schema](/api_v1/schemas/field) |
-| setting | 是 | Object | 表单设置；表单尚无设置时为空对象<br />详见[API V1 表单设置 Schema](/api_v1/schemas/form_setting) |
+| name | 是 | String | 表单标题 |
+| token | 是 | String | 表单 Token |
+| url | 是 | String | 表单的公开填写链接，不能用 token 自行拼接 |
+| description | 是 | String / null | 表单描述 |
+| fields | 是 | Array(Object) | 表单字段数据 |
+| fields[].\* | 否 | Object | 键为字段的 `api_code`，值为字段定义 |
+| setting | 是 | Object | 表单设置对象；字段列表与含义见[表单设置 Schema](/api_v1/schemas/form_setting)。未启用的嵌套规则（如 `by_time_range_close_rule`）以 `null` 返回。 |
 
 <!-- /openapi -->
 
@@ -166,13 +173,13 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN
 
 | 状态码 | 说明 |
 | ------ | ------ |
-| 200 | 更新成功，返回表单结构 |
-| 400 | 请求参数或数据不合法 |
-| 401 | 未认证：令牌无效或已撤销 |
-| 402 | 当前套餐不包含 API v1 能力 |
-| 403 | 无权限：OAuth 令牌 scope 不足，或操作被业务规则拒绝 |
-| 404 | 资源不存在或当前身份不可访问（个人令牌只能访问自己创建或被共享的表单） |
-| 429 | 超过速率限制 |
+| 200 | 更新成功 |
+| 400 | 未指定任何编辑操作；要删除/更新的字段不存在；字段不支持选项；字段类型非法；表单设置校验失败（详见[表单设置 Schema](/api_v1/schemas/form_setting)的"错误处理"小节） |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
+| 404 | 表单不存在或无权访问 |
+| 429 | 超过请求速率限制 |
 
 <!-- /openapi -->
 
