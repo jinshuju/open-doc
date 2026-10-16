@@ -61,6 +61,21 @@ const config: Config = {
         generateLLMsTxt: true,
         generateLLMsFullTxt: true,
         docsDir: 'docs',
+        // API v1 的页面不进 llms.txt / llms-full.txt：模型直接读 openapi.yaml，
+        // 那是 API 自己校验请求所用的规范，比这些写给人看的页面完整、准确。
+        ignoreFiles: ['docs/api_v1.md', 'docs/api_v1/**'],
+        rootContent: [
+          '本文件按 llmstxt.org 标准列出金数据开放平台的文档。',
+          '',
+          '## API v1',
+          '',
+          '- [API v1 OpenAPI 规范](https://jinshuju.net/api/v1/openapi.yaml): API v1 的全部接口、参数、请求与响应结构、认证方式、速率限制和错误码，以此为准；下列文档不再包含 API v1 的页面',
+        ].join('\n'),
+        fullRootContent: [
+          '本文件包含金数据开放平台的全部文档内容，API v1 除外。',
+          '',
+          'API v1 的接口、参数、请求与响应结构、认证方式、速率限制和错误码，请直接读取 OpenAPI 规范：https://jinshuju.net/api/v1/openapi.yaml',
+        ].join('\n'),
         title: '金数据开放平台文档',
         description: '金数据 API、Webhook、URL 传参等系统集成能力文档',
         pathTransformation: {

@@ -35,6 +35,8 @@ npm run build
 - `llms.txt` - AI/LLM 文档索引
 - `llms-full.txt` - 完整文档内容
 
+这两个文件都不收录 API v1 的页面，而是让模型直接读取 [openapi.yaml](https://jinshuju.net/api/v1/openapi.yaml)，见 `docusaurus.config.ts` 中 `docusaurus-plugin-llms` 的配置。
+
 ## 部署
 
 推送到 `master` 分支后，GitHub Actions 自动构建并部署到 GitHub Pages。
