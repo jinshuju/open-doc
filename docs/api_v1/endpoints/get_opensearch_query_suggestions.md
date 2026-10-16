@@ -82,20 +82,8 @@ GET https://jinshuju.net/api/v1/opensearch/query_suggestions?form_token=FORM_TOK
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | form_token | 是 | String | 表单 Token |
-| search_fields | 是 | Array(Object) | 可用作查询条件的字段，即 `search_field_rules[].search_field_settings[].field_api_code` 的合法取值 |
-| search_fields[].api_code | 是 | String | 字段 `api_code` |
-| search_fields[].label | 是 | String | 字段标题 |
-| search_fields[].type | 是 | String | 字段类型名 |
-| search_fields[].privacy_protectable | 是 | Boolean | 该字段的值能否脱敏；只有为 `true` 时 `display_field_rules[].protected` 才生效 |
-| search_fields[].for_associated | 是 | Boolean / null | 是否来自关联表单的展开字段 |
-| display_fields | 是 | Array(Object) | 可用于展示的字段，即 `display_field_rules[].field_api_code` 的合法取值 |
-| display_fields[].api_code | 是 | String | 字段 `api_code` |
-| display_fields[].label | 是 | String | 字段标题 |
-| display_fields[].type | 是 | String | 字段类型名 |
-| display_fields[].privacy_protectable | 是 | Boolean | 该字段的值能否脱敏；只有为 `true` 时 `display_field_rules[].protected` 才生效 |
-| display_fields[].for_associated | 是 | Boolean / null | 是否来自关联表单的展开字段 |
-| display_fields[].editable | 是 | Boolean | 该字段能否允许访问者在结果页编辑；只有为 `true` 时 `display_field_rules[].editable` 才生效 |
-| display_fields[].scorable | 是 | Boolean | 是否为考试得分类字段 |
+| search_fields | 是 | Array([OpensearchQuerySuggestion](#opensearchquerysuggestion)) | 可用作查询条件的字段，即 `search_field_rules[].search_field_settings[].field_api_code` 的合法取值 |
+| display_fields | 是 | Array([OpensearchDisplayQuerySuggestion](#opensearchdisplayquerysuggestion)) | 可用于展示的字段，即 `display_field_rules[].field_api_code` 的合法取值 |
 | recommend_search_fields | 是 | Array(String) | 推荐作为查询条件的 `api_code`，可直接使用。为空数组说明该表单没有手机号字段可推荐，此时应由使用者指定查询字段 |
 | recommend_display_fields | 是 | Array(String) | 编辑器的展示字段预选集合，**不要不加筛选地直接使用** |
 
@@ -112,6 +100,34 @@ GET https://jinshuju.net/api/v1/opensearch/query_suggestions?form_token=FORM_TOK
 | 402 | 当前套餐不支持 V1 API |
 | 403 | 能访问该表单但不是表单管理员 |
 | 404 | 表单不存在或无权访问 |
+
+<!-- /openapi -->
+
+## 数据类型
+
+<!-- openapi:types -->
+
+### OpensearchQuerySuggestion
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| api_code | 是 | String | 字段 `api_code` |
+| label | 是 | String | 字段标题 |
+| type | 是 | String | 字段类型名 |
+| privacy_protectable | 是 | Boolean | 该字段的值能否脱敏；只有为 `true` 时 `display_field_rules[].protected` 才生效 |
+| for_associated | 是 | Boolean / null | 是否来自关联表单的展开字段 |
+
+### OpensearchDisplayQuerySuggestion
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| api_code | 是 | String | 字段 `api_code` |
+| label | 是 | String | 字段标题 |
+| type | 是 | String | 字段类型名 |
+| privacy_protectable | 是 | Boolean | 该字段的值能否脱敏；只有为 `true` 时 `display_field_rules[].protected` 才生效 |
+| for_associated | 是 | Boolean / null | 是否来自关联表单的展开字段 |
+| editable | 是 | Boolean | 该字段能否允许访问者在结果页编辑；只有为 `true` 时 `display_field_rules[].editable` 才生效 |
+| scorable | 是 | Boolean | 是否为考试得分类字段 |
 
 <!-- /openapi -->
 

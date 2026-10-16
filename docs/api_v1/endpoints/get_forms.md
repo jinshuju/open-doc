@@ -96,19 +96,7 @@ GET https://jinshuju.net/api/v1/forms?next=60cc514761936ced06123456
 | ------ | ------ | ------ | ------ |
 | total | 是 | Integer | 符合条件的表单总数（含共享的表单） |
 | count | 是 | Integer | 本次请求返回的表单数量 |
-| data | 是 | Array(Object) | 表单信息数组 |
-| data[].name | 是 | String | 表单名称 |
-| data[].token | 是 | String | 表单Token |
-| data[].tags | 是 | Array(String) | 表单对应的标签 |
-| data[].created_at | 是 | DateTime | 表单创建时间 |
-| data[].entries_count | 是 | Integer | 表单的数据条数 |
-| data[].last_entry_created_at | 是 | DateTime / null | 最近一条数据的提交时间；从未收到数据时为 null |
-| data[].creator | 是 | Object | 表单创建者 |
-| data[].creator.name | 否 | String / null | 表单创建者的name/nickname |
-| data[].transactions | 否 | Object | 收款统计；仅 `include_transactions=true` 且表单绑定了收款账户时返回 |
-| data[].transactions.paid | 是 | Object | 已支付和退款中的数据统计，金额不扣除退款 |
-| data[].transactions.paid.amount | 是 | Number | 订单总额之和，单位：元 |
-| data[].transactions.paid.count | 是 | Integer | 数据条数 |
+| data | 是 | Array([FormSummary](#formsummary)) | 表单信息数组 |
 | next | 是 | String / null | 分页参数。原样传回即可请求下一页数据；null 表示没有下一页 |
 
 <!-- /openapi -->
@@ -127,6 +115,39 @@ GET https://jinshuju.net/api/v1/forms?next=60cc514761936ced06123456
 | 402 | 当前套餐不支持 V1 API |
 | 403 | 无权限（如 OAuth scope 不足） |
 | 429 | 超过请求速率限制 |
+
+<!-- /openapi -->
+
+## 数据类型
+
+<!-- openapi:types -->
+
+### FormSummary
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| name | 是 | String | 表单名称 |
+| token | 是 | String | 表单Token |
+| tags | 是 | Array(String) | 表单对应的标签 |
+| created_at | 是 | DateTime | 表单创建时间 |
+| entries_count | 是 | Integer | 表单的数据条数 |
+| last_entry_created_at | 是 | DateTime / null | 最近一条数据的提交时间；从未收到数据时为 null |
+| creator | 是 | [Creator](#creator) | 表单创建者 |
+| transactions | 否 | [FormTransactions](#formtransactions) | 收款统计；仅 `include_transactions=true` 且表单绑定了收款账户时返回 |
+
+### Creator
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| name | 否 | String / null | 表单创建者的name/nickname |
+
+### FormTransactions
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| paid | 是 | Object | 已支付和退款中的数据统计，金额不扣除退款 |
+| paid.amount | 是 | Number | 订单总额之和，单位：元 |
+| paid.count | 是 | Integer | 数据条数 |
 
 <!-- /openapi -->
 

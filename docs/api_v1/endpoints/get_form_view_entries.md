@@ -88,23 +88,7 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/views/VIEW_TOKEN/entries?next=5
 | ------ | ------ | ------ | ------ |
 | total | 是 | Integer | 符合视图筛选条件的数据总数 |
 | count | 是 | Integer | 本次请求返回的数据数量 |
-| data | 是 | Array(Object) | 数据数组 |
-| data[].token | 是 | String | 数据唯一标识 |
-| data[].serial_number | 是 | Integer | 数据序号（标识符） |
-| data[].created_at | 否 | DateTime | 数据提交时间 |
-| data[].updated_at | 否 | DateTime | 数据最后一次变更时间 |
-| data[].creator_name | 否 | String | 本条数据的填写者（仅对系统内录入数据有效） |
-| data[].color_mark | 否 | String | 颜色标记 |
-| data[].info_filling_duration | 否 | Number | 填写时长（秒）；Excel 导入、API 提交的数据为空 |
-| data[].info_platform | 否 | String | 填写设备 |
-| data[].info_os | 否 | String | 操作系统 |
-| data[].info_browser | 否 | String | 浏览器 |
-| data[].info_region | 否 | Object | 填写地区 |
-| data[].info_region.country | 否 | String | 国家 |
-| data[].info_region.province | 否 | String | 省份 |
-| data[].info_region.city | 否 | String | 城市 |
-| data[].info_remote_ip | 否 | String | 填写者 IP 地址 |
-| data[].\* | 否 | Any | 视图 `prefer_columns` 中包含的字段值 |
+| data | 是 | Array([EntryData](#entrydata)) | 数据数组 |
 | next | 是 | Integer / null | 分页参数。原样传回即可请求下一页数据；`null` 表示没有下一页 |
 
 <!-- /openapi -->
@@ -125,6 +109,33 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/views/VIEW_TOKEN/entries?next=5
 | 402 | 当前套餐不支持 V1 API，或当前账户不支持读取自定义视图 |
 | 403 | 无权限（如 OAuth scope 不足） |
 | 404 | 表单或视图不存在，或无权访问 |
+
+<!-- /openapi -->
+
+## 数据类型
+
+<!-- openapi:types -->
+
+### EntryData
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| token | 是 | String | 数据唯一标识 |
+| serial_number | 是 | Integer | 数据序号（标识符） |
+| created_at | 否 | DateTime | 数据提交时间 |
+| updated_at | 否 | DateTime | 数据最后一次变更时间 |
+| creator_name | 否 | String | 本条数据的填写者（仅对系统内录入数据有效） |
+| color_mark | 否 | String | 颜色标记 |
+| info_filling_duration | 否 | Number | 填写时长（秒）；Excel 导入、API 提交的数据为空 |
+| info_platform | 否 | String | 填写设备 |
+| info_os | 否 | String | 操作系统 |
+| info_browser | 否 | String | 浏览器 |
+| info_region | 否 | Object | 填写地区 |
+| info_region.country | 否 | String | 国家 |
+| info_region.province | 否 | String | 省份 |
+| info_region.city | 否 | String | 城市 |
+| info_remote_ip | 否 | String | 填写者 IP 地址 |
+| \* | 否 | Any | 对应字段的值，键为字段 `api_code` |
 
 <!-- /openapi -->
 

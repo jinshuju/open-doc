@@ -65,9 +65,8 @@ POST https://jinshuju.net/api/v1/forms/FORM_TOKEN/copy
 | token | 是 | String | 表单 Token |
 | url | 是 | String | 表单的公开填写链接，不能用 token 自行拼接 |
 | description | 是 | String / null | 表单描述 |
-| fields | 是 | Array(Object) | 表单字段数据 |
-| fields[].\* | 否 | Object | 键为字段的 `api_code`，值为字段定义 |
-| setting | 是 | Object | 表单设置对象；字段列表与含义见[表单设置 Schema](/api_v1/schemas/form_setting)。未启用的嵌套规则（如 `by_time_range_close_rule`）以 `null` 返回。 |
+| fields | 是 | Array([FieldMap](#fieldmap)) | 表单字段数据 |
+| setting | 是 | [FormSetting](/api_v1/schemas/form_setting) | 表单设置对象；字段列表与含义见[表单设置 Schema](/api_v1/schemas/form_setting)。未启用的嵌套规则（如 `by_time_range_close_rule`）以 `null` 返回。 |
 
 <!-- /openapi -->
 
@@ -83,6 +82,44 @@ POST https://jinshuju.net/api/v1/forms/FORM_TOKEN/copy
 | 402 | 当前套餐不支持 V1 API |
 | 403 | 源表单已被冻结，或其创建者已被冻结 |
 | 404 | 源表单不存在；或用户无权复制；或指定的文件夹不存在/无权管理 |
+
+<!-- /openapi -->
+
+## 数据类型
+
+<!-- openapi:types -->
+
+### FieldMap
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| \* | 否 | [FieldDefinition](/api_v1/schemas/field) | 键为字段的 `api_code`，值为字段定义 |
+| \*.label | 是 | String | 字段标题 |
+| \*.type | 是 | String | 字段类型 |
+| \*.notes | 是 | String / null | 字段提示 |
+| \*.private | 是 | Boolean | 字段隐藏 |
+| \*.validation | 是 | [FieldValidation](#fieldvalidation) | 字段校验信息 |
+
+### FieldValidation
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| required | 否 | Boolean | 是否必填 |
+| unique | 否 | Boolean | 是否不能与已有数据重复 |
+| white_list_limit | 否 | Boolean | 是否开启白名单限制 |
+| access_control_list_limit | 否 | Boolean | 是否开启「白名单」「黑名单」限制 |
+| access_control_type | 否 | String | 名单类型：`white` / `black` |
+| white_list_values | 否 | Array(String) | 白名单取值（单行文字 / 手机） |
+| acl_values | 否 | Array(String) | 名单取值（单行文字 / 手机） |
+| min_selected | 否 | Integer | 最少选几项（多选 / 图片多选 / 排序） |
+| max_selected | 否 | Integer | 最多选几项（多选 / 图片多选 / 排序） |
+| minimum_length | 否 | Integer | 最少多少字（文本类字段） |
+| maximum_length | 否 | Integer | 最多多少字（文本类字段） |
+| min | 否 | Number | 最小值（数字字段） |
+| max | 否 | Number | 最大值（数字字段） |
+| start | 否 | String | 最早日期（日期字段） |
+| end | 否 | String | 最晚日期（日期字段） |
+| \* | 否 | Any | 其他字段类型特有的校验规则，见[字段结构](/api_v1/schemas/field) |
 
 <!-- /openapi -->
 

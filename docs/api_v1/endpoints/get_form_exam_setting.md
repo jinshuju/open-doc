@@ -70,11 +70,7 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/exam_setting
 | show_timeout | 否 | Boolean | 是否开启限时答题 |
 | limited_time | 否 | Integer | 考试限时（分钟），配合 `show_timeout` 生效 |
 | need_attention | 否 | String | 考前须知内容 |
-| interval_comments | 否 | Array(Object) | 分数区间评语；未开启区间评语时不返回该字段 |
-| interval_comments[].start_point | 否 | Number | 分数区间左端（含） |
-| interval_comments[].end_point | 否 | Number | 分数区间右端（含） |
-| interval_comments[].comment | 否 | String | 该区间展示的评语 |
-| interval_comments[].retry | 否 | Boolean | 该区间是否允许再答一次 |
+| interval_comments | 否 | Array([IntervalComment](#intervalcomment)) | 分数区间评语；未开启区间评语时不返回该字段 |
 
 <!-- /openapi -->
 
@@ -90,6 +86,21 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/exam_setting
 | 402 | 当前套餐不支持 V1 API |
 | 403 | 无权限（如 OAuth scope 不足） |
 | 404 | 表单不存在或无权访问 |
+
+<!-- /openapi -->
+
+## 数据类型
+
+<!-- openapi:types -->
+
+### IntervalComment
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| start_point | 否 | Number | 分数区间左端（含） |
+| end_point | 否 | Number | 分数区间右端（含） |
+| comment | 否 | String | 该区间展示的评语 |
+| retry | 否 | Boolean | 该区间是否允许再答一次 |
 
 <!-- /openapi -->
 

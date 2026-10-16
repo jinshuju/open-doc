@@ -8,6 +8,7 @@
  *   <!-- openapi:params getFormView -->     path, query and body parameters
  *   <!-- openapi:response getFormView -->   fields of the 2xx response body
  *   <!-- openapi:status getFormView -->     status codes
+ *   <!-- openapi:types -->                  the data types the page's tables refer to
  *   | … |
  *   <!-- /openapi -->
  *
@@ -18,6 +19,14 @@
  * one run to the next; a row the spec adds comes in with an empty one, and the
  * run fails until somebody writes it (the report quotes the spec's description
  * to write it from). A row the spec drops goes, with its 说明.
+ *
+ * A field whose schema is a named object in the spec (`data` is an array of
+ * FormSummary) is not spelled out as `data[].name` rows: its 类型 reads
+ * `Array(FormSummary)`, linked to the page's 数据类型 section, where the types
+ * region gives FormSummary a table of its own, and so on for the types that
+ * table refers to. A type reads the same on every page that has it: a row
+ * still without a 说明 takes the one another page wrote, and the run fails
+ * when two pages say different things.
  *
  * Everything outside the markers is the page's own too: the introduction, plan
  * table, notes, the JSON examples and the code samples. Which operations get a
@@ -68,8 +77,8 @@ const SCHEMA_PAGES = {
   FormSettingWriteInput: 'api_v1/schemas/form_setting',
 };
 
-const REGION = /<!-- openapi:(\w+) (\w+) -->\n([\s\S]*?)<!-- \/openapi -->/g;
-const KINDS = ['params', 'response', 'status'];
+const REGION = /<!-- openapi:(\w+)(?: (\w+))? -->\n([\s\S]*?)<!-- \/openapi -->/g;
+const KINDS = ['params', 'response', 'status', 'types'];
 
 // ---- Table cells -------------------------------------------------------------
 
@@ -93,6 +102,34 @@ function descriptions(table) {
   return out;
 }
 
+/** The 说明 of each row of the types region, by type and then by row name. */
+function typeDescriptions(region) {
+  const out = new Map();
+  for (const section of region.split(/^### /m).slice(1)) {
+    out.set(section.slice(0, section.indexOf('\n')).trim(), descriptions(section));
+  }
+  return out;
+}
+
+// ---- Data types --------------------------------------------------------------
+
+/**
+ * The name of a data type: a named object schema of the spec, which gets a
+ * table of its own in the 数据类型 section instead of `a.b` rows wherever it is
+ * used. The names are openapi.yaml's, so a reader can look a type up there. A
+ * schema with a page of its own is not one: it links to its page.
+ */
+function dataType(spec, node) {
+  const name = schemaName(node);
+  if (!name || SCHEMA_PAGES[name]) return undefined;
+  const s = flat(spec, node);
+  const extra = s?.additionalProperties;
+  return s?.properties || (extra && extra !== true) ? name : undefined;
+}
+
+// The data types the page being rendered refers to, in the order it first does.
+let referenced = new Set();
+
 // ---- What a schema says ------------------------------------------------------
 
 const TYPE_NAMES = { string: 'String', integer: 'Integer', number: 'Number', boolean: 'Boolean', object: 'Object', null: 'null' };
@@ -107,6 +144,13 @@ function shapesOf(s) {
 }
 
 function typeName(spec, node) {
+  const type = dataType(spec, node);
+  if (type) {
+    referenced.add(type);
+    return `[${type}](#${type.toLowerCase()})`;
+  }
+  const page = SCHEMA_PAGES[schemaName(node)];
+  if (page) return `[${schemaName(node)}](/${page})`;
   const s = flat(spec, node);
   if (!s) return 'Any';
   const shapes = shapesOf(s);
@@ -147,9 +191,11 @@ const hasPage = (node) => Boolean(SCHEMA_PAGES[schemaName(node)] ?? SCHEMA_PAGES
 
 /**
  * The properties of an object schema as rows, nested ones spelled `a.b`, items
- * of an array of objects `a[].b`, and the values of a map `a.*`. A schema with
- * a page of its own, or one already being spelled out above (a cycle), is not
- * gone into.
+ * of an array of objects `a[].b`, and the values of a map `a.*`. A data type, a
+ * schema with a page of its own, or one already being spelled out above (a
+ * cycle), is not gone into. `side` is request, response, or type for a data
+ * type's own table, which lists every property: a page may send and receive
+ * the same type.
  */
 function schemaRows(spec, node, prefix, side, written, seen = new Set()) {
   const s = flat(spec, node);
@@ -180,6 +226,7 @@ function childRows(spec, node, path, side, written, seen) {
   const inner = isArray ? s.items : node;
   const prefix = path + (isArray ? '[].' : '.');
   if (hasPage(node) || hasPage(inner)) return listedRows(spec, inner, prefix, written);
+  if (dataType(spec, node) || dataType(spec, inner)) return [];
   const name = schemaName(inner);
   if (name && seen.has(name)) return [];
   const t = flat(spec, inner);
@@ -192,12 +239,16 @@ function childRows(spec, node, path, side, written, seen) {
 // spec no longer has, as `<page> <operation> <region>: <name>`; they are dropped.
 const dropped = [];
 
-/** The rows the page lists under `prefix`, in its order, each as the spec now has it. */
+/**
+ * The rows the page lists under `prefix`, in its order, each as the spec now
+ * has it. A row below a data type is left to that type's own table.
+ */
 function listedRows(spec, node, prefix, written) {
   const rows = [];
   for (const name of written.keys()) {
     if (!name.startsWith(prefix)) continue;
     const found = resolve(spec, node, name.slice(prefix.length));
+    if (found?.inType) continue;
     if (found) rows.push({ name, required: found.required, type: typeName(spec, found.node), spec: specText(spec, found.node), choices: choicesOf(spec, found.node) });
     else dropped.push(`${rendering}: ${name}`);
   }
@@ -212,8 +263,9 @@ function variants(spec, node) {
 
 /**
  * A row name below a schema (`choices[].value`, `*.label`) followed into it:
- * the node it names, and whether it is required. Every variant of a oneOf is
- * tried, so the name resolves if any variant has that path.
+ * the node it names, and whether it is required, or `inType` when the path
+ * goes through a data type. Every variant of a oneOf is tried, so the name
+ * resolves if any variant has that path.
  */
 function resolve(spec, node, rest, required = false) {
   if (rest === '') return { node, required };
@@ -226,6 +278,7 @@ function resolve(spec, node, rest, required = false) {
     if (child === undefined) continue;
     if (isArray) child = flat(spec, child)?.items;
     if (child === undefined) continue;
+    if (more.length && dataType(spec, child)) return { inType: true };
     const found = resolve(spec, child, more.join('.'), key !== '*' && (v.required ?? []).includes(key));
     if (found) return found;
   }
@@ -300,10 +353,70 @@ function pagesUnder(dir) {
     .sort();
 }
 
+// What the types regions of every page say before this run: type → row → 说明 → pages.
+const heard = new Map();
+
+function hear(page, source) {
+  for (const [, kind, , current] of source.matchAll(REGION)) {
+    if (kind !== 'types') continue;
+    for (const [type, rows] of typeDescriptions(current)) {
+      for (const [row, text] of rows) {
+        if (!text) continue;
+        const texts = heard.get(type)?.get(row) ?? new Map();
+        texts.set(text, [...(texts.get(text) ?? []), page]);
+        if (!heard.has(type)) heard.set(type, new Map());
+        heard.get(type).set(row, texts);
+      }
+    }
+  }
+}
+
+// What the types regions say after it, `type.row` → 说明 → pages, and the rows
+// no page has written yet, `type.row` → { type, row, pages }.
+const typeTexts = new Map();
+const typeUnwritten = new Map();
+
+/**
+ * The 数据类型 section: a table for each data type the page's tables refer to,
+ * then for each type those tables refer to in turn. A row this page has not
+ * written takes the 说明 other pages agree on, and the sub-rows they list
+ * under a schema with a page of its own come along with it.
+ */
+function typeSections(spec, page, written) {
+  const sections = [];
+  for (const type of referenced) {
+    rendering = `${page} types ${type}`;
+    const texts = new Map(written.get(type));
+    for (const [row, others] of heard.get(type) ?? []) {
+      if (!texts.get(row)) texts.set(row, others.size === 1 ? [...others.keys()][0] : '');
+    }
+    const rows = schemaRows(spec, { $ref: `#/components/schemas/${type}` }, '', 'type', texts);
+    const unwritten = [];
+    sections.push(`### ${type}\n\n${table('types', rows, texts, unwritten)}`);
+    for (const row of rows) {
+      const key = `${type}.${row.name}`;
+      const text = texts.get(row.name);
+      if (text) {
+        if (!typeTexts.has(key)) typeTexts.set(key, new Map());
+        typeTexts.get(key).set(text, [...(typeTexts.get(key).get(text) ?? []), page]);
+      }
+    }
+    for (const row of unwritten) {
+      const key = `${type}.${row.name}`;
+      if (!typeUnwritten.has(key)) typeUnwritten.set(key, { type, row, pages: [] });
+      typeUnwritten.get(key).pages.push(page);
+    }
+  }
+  return sections.join('\n\n');
+}
+
 /** The page with every region rewritten, and the regions it has. */
 function render(spec, ops, source, problems, page) {
   const regions = [];
-  const out = source.replace(REGION, (whole, kind, id, current) => {
+  referenced = new Set();
+  // The tables first, so that the types region knows which types they refer to.
+  const tables = source.replace(REGION, (whole, kind, id, current) => {
+    if (kind === 'types') return whole;
     const op = ops.get(id);
     if (!KINDS.includes(kind)) {
       problems.push(`${page}: unknown region openapi:${kind} (known: ${KINDS.join(', ')})`);
@@ -324,6 +437,20 @@ function render(spec, ops, source, problems, page) {
     }
     return `<!-- openapi:${kind} ${id} -->\n\n${body}\n\n<!-- /openapi -->`;
   });
+  let typeRegions = 0;
+  const out = tables.replace(REGION, (whole, kind, id, current) => {
+    if (kind !== 'types') return whole;
+    if (++typeRegions > 1) return whole;
+    if (referenced.size === 0) {
+      problems.push(`${page}: has an openapi:types region, but no table on the page refers to a data type; remove the 数据类型 section`);
+      return whole;
+    }
+    return `<!-- openapi:types -->\n\n${typeSections(spec, page, typeDescriptions(current))}\n\n<!-- /openapi -->`;
+  });
+  if (typeRegions > 1) problems.push(`${page}: has ${typeRegions} openapi:types regions; one region lists all the data types of the page`);
+  if (referenced.size && typeRegions === 0) {
+    problems.push(`${page}: refers to data types (${[...referenced].join(', ')}) but has no \`<!-- openapi:types -->\` region; add one under a \`## 数据类型\` heading`);
+  }
   return { out, regions };
 }
 
@@ -431,18 +558,21 @@ const ops = operations(spec);
 const problems = [];
 const stale = [];
 const documented = new Set();
+const files = pagesUnder(PAGES);
+for (const file of files) hear(relative(ROOT, file), readFileSync(file, 'utf8'));
 
 if (rowsOf !== undefined) {
   const page = relative(ROOT, join(ROOT, rowsOf));
   render(spec, ops, readFileSync(join(ROOT, page), 'utf8'), [], page);
   for (const row of listing) {
     const said = row.spec.replace(/\s+/g, ' ').trim();
-    console.log(`${row.where.slice(page.length + 1)} | ${row.name} | ${row.type ?? ''}${row.type ? (row.required ? ' | 是' : ' | 否') : ''} | 说明: ${row.text || '（空）'}\n    openapi.yaml: ${said || '（无）'}${row.choices ? `\n    enum: ${row.choices.map(String).join(' / ')}` : ''}`);
+    const type = row.type?.replace(/\[(\w+)\]\([^)]*\)/g, '$1');
+    console.log(`${row.where.slice(page.length + 1)} | ${row.name} | ${type ?? ''}${type ? (row.required ? ' | 是' : ' | 否') : ''} | 说明: ${row.text || '（空）'}\n    openapi.yaml: ${said || '（无）'}${row.choices ? `\n    enum: ${row.choices.map(String).join(' / ')}` : ''}`);
   }
   process.exit(0);
 }
 
-for (const file of pagesUnder(PAGES)) {
+for (const file of files) {
   const page = relative(ROOT, file);
   const source = readFileSync(file, 'utf8');
   const { out, regions } = render(spec, ops, source, problems, page);
@@ -457,6 +587,16 @@ for (const file of pagesUnder(PAGES)) {
   }
 }
 
+for (const { type, row, pages } of typeUnwritten.values()) {
+  const said = row.spec.replace(/\s+/g, ' ').trim();
+  const more = pages.length > 1 ? ` (also on ${pages.length - 1} more page${pages.length > 2 ? 's' : ''}; written once, the others take it on the next run)` : '';
+  problems.push(`${pages[0]}: data type ${type} \`${row.name}\` has no 说明${said ? ` (openapi.yaml: "${said.length > 160 ? said.slice(0, 160) + '…' : said}")` : ''}${more}`);
+}
+for (const [key, texts] of typeTexts) {
+  if (texts.size < 2) continue;
+  const versions = [...texts].map(([text, pages]) => `"${text}" (${pages.join(', ')})`).join('; ');
+  problems.push(`data type ${key.replace('.', ' `')}\` has a different 说明 on different pages: ${versions}; a type reads the same wherever it is`);
+}
 for (const row of dropped) console.log(`dropped ${row}: openapi.yaml no longer has it`);
 console.log(`${documented.size} of ${ops.size} operations have a page; ${ops.size - documented.size} do not.`);
 if (problems.length) {

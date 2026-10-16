@@ -106,11 +106,7 @@ GET https://jinshuju.net/api/v1/opensearch/queries/QUERY_TOKEN
 | status | 是 | String | 查询页可用状态：`active` = 正常；`entries_count_limited` = 表单数据量超出套餐的对外查询上限，访问者会看到不可用提示；`form_not_found` = 来源表单已删除。**与 `enabled` 无关**，停用的查询 `status` 仍可能是 `active` |
 | search_field_rules | 是 | Array(Object) | 查询条件组，通常只有一组 |
 | search_field_rules[].operand | 是 | String | 组内多个查询字段的关系：`and` = 全部匹配；`or` = 任一匹配 |
-| search_field_rules[].search_field_settings | 是 | Array(Object) | 访问者需要填写的查询字段 |
-| search_field_rules[].search_field_settings[].field_api_code | 是 | String | 查询字段的 `api_code` |
-| search_field_rules[].search_field_settings[].field_label | 否 | String / null | 展示给访问者的自定义标签；未设置为 `null` |
-| search_field_rules[].search_field_settings[].fuzzy | 否 | Boolean | `true` = 包含匹配；`false` = 精确匹配 |
-| search_field_rules[].search_field_settings[].sms_verification | 否 | Boolean | 查询前是否要求短信验证（仅手机号字段生效） |
+| search_field_rules[].search_field_settings | 是 | Array([OpensearchSearchFieldSetting](#opensearchsearchfieldsetting)) | 访问者需要填写的查询字段 |
 | display_field_rules | 是 | Array(Object) | 命中数据展示的字段，按展示顺序 |
 | display_field_rules[].field_api_code | 是 | String | 展示字段的 `api_code` |
 | display_field_rules[].field_label | 是 | String / null | 自定义标签；未设置为 `null` |
@@ -150,6 +146,21 @@ GET https://jinshuju.net/api/v1/opensearch/queries/QUERY_TOKEN
 | 402 | 当前套餐不支持 V1 API |
 | 403 | 无权限（如 OAuth scope 不足） |
 | 404 | 对外查询不存在，或不是当前调用方创建的 |
+
+<!-- /openapi -->
+
+## 数据类型
+
+<!-- openapi:types -->
+
+### OpensearchSearchFieldSetting
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| field_api_code | 是 | String | 查询字段的 `api_code`，须在[可用字段](/api_v1/endpoints/get_opensearch_query_suggestions)的 `search_fields` 中 |
+| field_label | 否 | String / null | 展示给访问者的自定义标签；未设置（`null`）时用字段标题 |
+| fuzzy | 否 | Boolean | `true` = 包含匹配；`false` = 精确匹配（默认） |
+| sms_verification | 否 | Boolean | 查询前是否要求短信验证（仅手机号字段生效），默认 `false` |
 
 <!-- /openapi -->
 
