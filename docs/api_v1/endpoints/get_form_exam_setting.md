@@ -39,9 +39,13 @@ sidebar_label: 获取考试设置
 GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/exam_setting
 ```
 
+<!-- openapi:params getExamSetting -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | FORM_TOKEN | 是 | String | 表单 Token（URL 路径参数） |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -58,19 +62,25 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/exam_setting
 }
 ```
 
+<!-- openapi:response getExamSetting -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| notice_after_filling_mode | 是 | String | 交卷后展示：`grade` = 显示成绩；`explaination` = 成绩 + 答案解析；`answer` = 仅展示对错；`none` = 不显示。当前套餐不支持时该值恒为 `none` |
-| show_timeout | 否 | Bool | 是否开启限时答题 |
-| limited_time | 否 | Number | 考试限时（分钟），配合 `show_timeout` 生效 |
+| notice_after_filling_mode | 否 | String | 交卷后展示：`grade` = 显示成绩；`explaination` = 成绩 + 答案解析；`answer` = 仅展示对错；`none` = 不显示；`appreciation` = 感谢参与文案（已弃用）。当前套餐不支持时该值恒为 `none` |
+| show_timeout | 否 | Boolean | 是否开启限时答题 |
+| limited_time | 否 | Integer | 考试限时（分钟），配合 `show_timeout` 生效 |
 | need_attention | 否 | String | 考前须知内容 |
-| interval_comments | 否 | Array | 分数区间评语；未开启区间评语时不返回该字段 |
-| interval_comments[].start_point | 是 | Number | 分数区间左端（含） |
-| interval_comments[].end_point | 是 | Number | 分数区间右端（含） |
-| interval_comments[].comment | 是 | String | 该区间展示的评语 |
-| interval_comments[].retry | 否 | Bool | 该区间是否允许再答一次 |
+| interval_comments | 否 | Array(Object) | 分数区间评语；未开启区间评语时不返回该字段 |
+| interval_comments[].start_point | 否 | Number | 分数区间左端（含） |
+| interval_comments[].end_point | 否 | Number | 分数区间右端（含） |
+| interval_comments[].comment | 否 | String | 该区间展示的评语 |
+| interval_comments[].retry | 否 | Boolean | 该区间是否允许再答一次 |
+
+<!-- /openapi -->
 
 ### 状态码
+
+<!-- openapi:status getExamSetting -->
 
 | 状态码 | 说明 |
 | ------ | ------ |
@@ -78,7 +88,10 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/exam_setting
 | 400 | 该表单不是考试场景的表单 |
 | 401 | 未认证 |
 | 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
 | 404 | 表单不存在或无权访问 |
+
+<!-- /openapi -->
 
 ## 示例代码
 

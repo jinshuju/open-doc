@@ -43,17 +43,37 @@ POST https://jinshuju.net/api/v1/forms/FORM_TOKEN/copy
 }
 ```
 
+<!-- openapi:params copyForm -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | FORM_TOKEN | 是 | String | 源表单 Token（URL 路径参数） |
 | name | 否 | String | 新表单的标题，默认在原标题前加 `[新]`，例如 `[新]问卷调查表` |
 | folder_token | 否 | String | 目标文件夹 token；设置后新表单会放入该文件夹 |
 
+<!-- /openapi -->
+
 ### Response
 
 成功时返回新建表单的完整结构（同[获取单个表单结构](/api_v1/endpoints/get_form)）。
 
+<!-- openapi:response copyForm -->
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| name | 是 | String | 表单标题 |
+| token | 是 | String | 表单 Token |
+| url | 是 | String | 表单的公开填写链接，不能用 token 自行拼接 |
+| description | 是 | String / null | 表单描述 |
+| fields | 是 | Array(Object) | 表单字段数据 |
+| fields[].\* | 否 | Object | 键为字段的 `api_code`，值为字段定义 |
+| setting | 是 | Object | 表单设置对象；字段列表与含义见[表单设置 Schema](/api_v1/schemas/form_setting)。未启用的嵌套规则（如 `by_time_range_close_rule`）以 `null` 返回。 |
+
+<!-- /openapi -->
+
 ### 状态码
+
+<!-- openapi:status copyForm -->
 
 | 状态码 | 说明 |
 | ------ | ------ |
@@ -63,6 +83,8 @@ POST https://jinshuju.net/api/v1/forms/FORM_TOKEN/copy
 | 402 | 当前套餐不支持 V1 API |
 | 403 | 源表单已被冻结，或其创建者已被冻结 |
 | 404 | 源表单不存在；或用户无权复制；或指定的文件夹不存在/无权管理 |
+
+<!-- /openapi -->
 
 ## 示例代码
 

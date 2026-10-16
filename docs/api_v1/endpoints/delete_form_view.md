@@ -40,10 +40,14 @@ sidebar_label: 删除表单视图
 DELETE https://jinshuju.net/api/v1/forms/FORM_TOKEN/views/VIEW_TOKEN
 ```
 
+<!-- openapi:params deleteFormView -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | FORM_TOKEN | 是 | String | 表单 Token（URL 路径参数） |
 | VIEW_TOKEN | 是 | String | 视图 Token（URL 路径参数） |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -55,19 +59,28 @@ DELETE https://jinshuju.net/api/v1/forms/FORM_TOKEN/views/VIEW_TOKEN
 }
 ```
 
+<!-- openapi:response deleteFormView -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | token | 是 | String | 被删除的视图 Token |
 
+<!-- /openapi -->
+
 ### 状态码
+
+<!-- openapi:status deleteFormView -->
 
 | 状态码 | 说明 |
 | ------ | ------ |
 | 200 | 删除成功 |
 | 401 | 未认证 |
 | 402 | 当前套餐不支持 V1 API，或当前账户不支持自定义视图 |
+| 403 | 无权限（如 OAuth scope 不足，或无权删除表单视图） |
 | 404 | 表单或视图不存在，或无权访问 |
-| 422 | 系统预设视图不允许删除，或表单至少需要保留一个视图 |
+| 422 | 不可删除：系统预设视图、`view_scope` 为 `form` 的视图、最后一个可见视图 |
+
+<!-- /openapi -->
 
 ## 示例代码
 

@@ -64,25 +64,30 @@ POST https://jinshuju.net/api/v1/forms
 }
 ```
 
+<!-- openapi:params createForm -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | name | 是 | String | 表单标题 |
-| fields | 是 | Array | 字段定义数组，至少一个字段 |
+| description | 否 | String | 表单描述 |
+| fields | 是 | Array(Object) | 字段定义数组，至少一个字段 |
 | fields[].type | 是 | String | 字段类型，见下方「支持的字段类型」 |
 | fields[].label | 是 | String | 字段标题 |
-| fields[].required | 否 | Bool | 是否必填（默认 false） |
-| fields[].private | 否 | Bool | 是否隐藏字段（默认 false），与 required 互斥 |
+| fields[].required | 否 | Boolean | 是否必填（默认 false） |
+| fields[].private | 否 | Boolean | 是否隐藏字段（默认 false），与 required 互斥 |
 | fields[].notes | 否 | String | 字段描述/提示文字 |
-| fields[].choices | 否 | Array | 选项数组（仅适用于选择类字段） |
-| fields[].choices[].value | 是 | String | 选项展示值 |
-| fields[].choices[].quota | 否 | Number | 选项可选配额上限 |
-| fields[].rating_max | 否 | Number | 评分字段最大分（支持 3/5/10，默认 5） |
-| fields[].init_row_length | 否 | Number | 表格题初始行数（1-5，默认 3） |
-| fields[].dimensions | 否 | Array | 表格题列定义 |
-| description | 否 | String | 表单描述 |
+| fields[].choices | 否 | Array(Object) | 选项数组（仅适用于选择类字段） |
+| fields[].rating_max | 否 | Integer | 评分字段最大分（支持 3/5/10，默认 5） |
+| fields[].init_row_length | 否 | Integer | 表格题初始行数（1-5，默认 3） |
+| fields[].dimensions | 否 | Array(Object) | 表格题列定义 |
+| fields[].choices[].value | 否 | String | 选项展示值 |
+| fields[].choices[].quota | 否 | Integer | 选项可选配额上限 |
 | setting | 否 | Object | 表单设置对象（提交后行为、表单状态、提交限制、权限、Webhook、通知规则等）。完整字段见[表单设置 Schema](/api_v1/schemas/form_setting)。`setting.notification_rules` 用于配置企微 / 钉钉 / Webhook 类高级通知规则，详见 schema。 |
 | folder_token | 否 | String | 目标文件夹 token；设置后新表单会放入该文件夹 |
+| scene | 否 | String | 表单场景，如 `survey` 问卷、`exam` 考试；默认 `form`（普通表单） |
 | layout | 否 | String | 表单样式：`classic`（经典式，默认）每页展示全部字段；`card`（分页式）一页一题、自动翻页。见下方「分页式表单」 |
+
+<!-- /openapi -->
 
 #### 分页式表单
 
@@ -166,6 +171,8 @@ POST https://jinshuju.net/api/v1/forms
 
 ### Response
 
+响应结构与[获取单个表单结构](/api_v1/endpoints/get_form)相同。
+
 ```json
 {
     "name": "产品需求调研表",
@@ -193,9 +200,23 @@ POST https://jinshuju.net/api/v1/forms
 }
 ```
 
-响应结构与[获取单个表单结构](/api_v1/endpoints/get_form)相同。
+<!-- openapi:response createForm -->
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| name | 是 | String | 表单标题 |
+| token | 是 | String | 表单 Token |
+| url | 是 | String | 表单的公开填写链接，不能用 token 自行拼接 |
+| description | 是 | String / null | 表单描述 |
+| fields | 是 | Array(Object) | 表单字段数据 |
+| fields[].\* | 否 | Object | 键为字段的 `api_code`，值为字段定义 |
+| setting | 是 | Object | 表单设置对象；字段列表与含义见[表单设置 Schema](/api_v1/schemas/form_setting)。未启用的嵌套规则（如 `by_time_range_close_rule`）以 `null` 返回。 |
+
+<!-- /openapi -->
 
 ### 状态码
+
+<!-- openapi:status createForm -->
 
 | 状态码 | 说明 |
 | ------ | ------ |
@@ -203,7 +224,11 @@ POST https://jinshuju.net/api/v1/forms
 | 400 | 参数校验失败（name 或 fields 为空、字段类型非法、表单设置校验失败等；设置校验规则详见[表单设置 Schema](/api_v1/schemas/form_setting)的"错误处理"小节） |
 | 401 | 未认证 |
 | 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
 | 404 | 指定的 folder_token 不存在，或当前账号无权管理该文件夹 |
+| 429 | 超过请求速率限制 |
+
+<!-- /openapi -->
 
 ## 示例代码
 

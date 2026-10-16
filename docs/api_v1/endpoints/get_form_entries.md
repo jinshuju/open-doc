@@ -49,13 +49,22 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries?keyword=张三
 GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries?next=
 ```
 
-| 参数名称       | 是否必须 | 类型 | 说明                   |
-|------------|------| ------ |----------------------|
-| FORM_TOKEN | 是    | String | 表单Token              |
-| created_at | 否    | String | 根据时间筛选数据，返回该时间点以后的数据 |
-| filters    | 否    | JSON 数组（也可作为字符串传入） | 字段值过滤条件，多条件 AND 组合。详见下方「filters 字段过滤」 |
-| keyword    | 否    | String | 关键词全文搜索，一次搜遍表单的所有可搜字段。详见下方「keyword 全文搜索」 |
-| next       | 否    | String | 分页参数。原样传回上一页响应中的 `next`，不要自行构造   |
+<!-- openapi:params listEntries -->
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| FORM_TOKEN | 是 | String | 表单Token |
+| fields | 否 | String | 只返回指定字段，传字段 `api_code` 的 JSON 数组或逗号分隔列表 |
+| filters | 否 | String | 字段值过滤条件，多条件 AND 组合。详见下方「filters 字段过滤」 |
+| keyword | 否 | String | 关键词全文搜索，一次搜遍表单的所有可搜字段。详见下方「keyword 全文搜索」 |
+| sort | 否 | String | 排序规则，形如 `[{"api_code":"field_1","order":"desc"}]`，`order` 为 `asc` / `desc` |
+| created_at | 否 | String | 根据时间筛选数据，返回该时间点以后的数据 |
+| next | 否 | Integer / String | 分页参数。原样传回上一页响应中的 `next`，不要自行构造 |
+| skip | 否 | Integer | 起始行偏移（从 0 开始，最大 10000），不能与 `next` 同时传 |
+| include_labels | 否 | Boolean | 为 `true` 时，表单字段的值改为 `{label, value}` 形式 |
+| limit | 否 | Integer | 每页条数，默认 50，最大 1000；传 0 时只返回 `total` |
+
+<!-- /openapi -->
 
 ### 注意
 
@@ -171,22 +180,52 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries?next=
 }
 ```
 
+<!-- openapi:response listEntries -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| total | 是 | Number | 表单数据总数 |
-| count | 是 | Number | 本次请求返回的数据数量 |
-| data | 是 | Array | 数据数组 |
-| data[].serial_number | 是 | String | 数据序号（标识符） |
-| data[].field_* | 是 | | 对应字段的值 |
-| data[].info_filling_duration | 否 | Number | 本条数据的填写时长（Excel导入、API提交，此值为空） |
+| total | 是 | Integer | 符合筛选条件的数据总数 |
+| count | 是 | Integer | 本次请求返回的数据数量 |
+| data | 是 | Array(Object) | 数据数组 |
+| data[].token | 是 | String | 数据唯一标识 |
+| data[].serial_number | 是 | Integer | 数据序号（标识符） |
+| data[].created_at | 否 | DateTime | 数据提交时间 |
+| data[].updated_at | 否 | DateTime | 数据最后一次变更时间 |
 | data[].creator_name | 否 | String | 本条数据的填写者（仅对系统内录入数据有效） |
-| data[].created_at | 是 | Date | 数据提交时间 |
-| data[].updated_at | 是 | Date | 数据最后一次变更时间 |
-| next | 否 | String | 分页参数。原样传回即可请求下一页数据；null 表示没有下一页 |
+| data[].color_mark | 否 | String | 颜色标记 |
+| data[].info_filling_duration | 否 | Number | 本条数据的填写时长（Excel导入、API提交，此值为空） |
+| data[].info_platform | 否 | String | 填写设备 |
+| data[].info_os | 否 | String | 操作系统 |
+| data[].info_browser | 否 | String | 浏览器 |
+| data[].info_region | 否 | Object | 填写地区 |
+| data[].info_region.country | 否 | String | 国家 |
+| data[].info_region.province | 否 | String | 省份 |
+| data[].info_region.city | 否 | String | 城市 |
+| data[].info_remote_ip | 否 | String | 填写者 IP 地址 |
+| data[].\* | 否 | Any | 对应字段的值 |
+| next | 是 | Integer / null | 分页参数。原样传回即可请求下一页数据；null 表示没有下一页 |
+
+<!-- /openapi -->
 
 > 数据详细结构，请[参考文档](/api_v1/schemas/entry)
 
 > 注意：数据中的日期时间，使用的是 UTC 时间（例如：`"2021-09-28T02:59:42.539Z"`），接受者需要自行转换为自己所需要的时区（例如北京时间）
+
+### 状态码
+
+<!-- openapi:status listEntries -->
+
+| 状态码 | 说明 |
+| ------ | ------ |
+| 200 | 获取成功 |
+| 400 | 参数不合法（如 `filters`、`sort` 有误） |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
+| 404 | 表单不存在或无权访问 |
+| 429 | 超过请求速率限制 |
+
+<!-- /openapi -->
 
 ## 示例代码
 

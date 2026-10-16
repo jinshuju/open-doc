@@ -38,9 +38,13 @@ sidebar_label: 获取表单视图列表
 GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/views
 ```
 
+<!-- openapi:params listFormViews -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | FORM_TOKEN | 是 | String | 表单 Token（URL 路径参数） |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -80,36 +84,64 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/views
 }
 ```
 
+<!-- openapi:response listFormViews -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| count | 是 | Number | 本次返回的视图数量 |
-| data | 是 | Array | 视图数组 |
+| count | 是 | Integer | 本次返回的视图数量 |
+| data | 是 | Array(Object) | 视图数组 |
 | data[].token | 是 | String | 视图 Token，用于后续获取、更新、删除视图，或获取视图下的数据 |
 | data[].name | 是 | String | 视图名称 |
-| data[].view_type | 是 | String | 视图类型：`grid` / `kanban` / `stats` |
-| data[].position | 是 | Number | 视图排序位置 |
+| data[].view_type | 是 | String | 视图类型：`grid` / `kanban` / `stats` / `form`（表单视图） |
+| data[].position | 是 | Integer | 视图排序位置 |
 | data[].predefined | 是 | Boolean | 是否为系统预设视图 |
+| data[].visibility | 是 | String | 可见性：`cooperators`（协作者可见）/ `personal`（仅创建者可见） |
+| data[].view_scope | 是 | String | 视图归属：`user` / `form`。`form` 视图不可删除，也不可切换可见性 |
 | data[].prefer_columns | 是 | Array(String) | 视图展示的字段 `api_code` 列表；为空时表示展示表单可推送字段 |
-| data[].sort | 是 | Array | 排序规则数组 |
+| data[].sorted_columns | 是 | Array(Object) | 列的显示顺序，按 `position` 升序 |
+| data[].sorted_columns[].api_code | 是 | String | 字段的 `api_code` |
+| data[].sorted_columns[].position | 是 | Integer | 列位置，从 1 开始 |
+| data[].kanban_group_by_api_code | 是 | String / null | 看板视图分组字段的 `api_code` |
+| data[].kanban_card_title_api_code | 是 | String / null | 看板卡片标题字段的 `api_code`；未设置时按 `prefer_columns` 推算 |
+| data[].kanban_group_order | 是 | Array(String) | 看板分组的显示顺序，元素为分组选项的 `api_code`；`__unset__` 表示未分组 |
+| data[].kanban_hidden_groups | 是 | Array(String) | 隐藏的看板分组，取值同 `kanban_group_order` |
+| data[].grid_frozen_boundary_api_code | 是 | String / null | 表格视图中冻结列边界处字段的 `api_code` |
+| data[].sort | 是 | Array(Object) | 排序规则数组 |
 | data[].sort[].api_code | 是 | String | 排序字段的 `api_code`，可包含系统字段如 `serial_number` |
 | data[].sort[].order | 是 | String | 排序方向：`asc` / `desc` |
-| data[].filter | 是 | Array | 视图筛选条件数组。无筛选条件时返回空数组 |
+| data[].filter | 是 | Array(Object) | 视图筛选条件数组。无筛选条件时返回空数组 |
 | data[].filter[].field | 是 | String | 筛选字段的 `api_code` |
 | data[].filter[].operator | 是 | String | 筛选操作符 |
-| data[].filter[].value | 否 | 取决于 operator | 筛选值；`null` / `not_null` 不返回该字段 |
+| data[].filter[].value | 否 | Any | 筛选值；`null` / `not_null` 不返回该字段 |
 | data[].created_at | 是 | DateTime | 视图创建时间 |
 | data[].updated_at | 是 | DateTime | 视图最后更新时间 |
+| data[].title | 否 | String / null | 填写页标题（仅表单视图返回） |
+| data[].description | 否 | String / null | 填写页描述（仅表单视图返回） |
+| data[].published | 否 | Boolean | 是否已发布，未发布时填写链接不可用（仅表单视图返回） |
+| data[].fill_url | 否 | String | 对外填写链接（仅表单视图返回） |
+| data[].fill_items | 否 | Array(Object) | 填写页上勾选的填写项，按填写页顺序（仅表单视图返回） |
+| data[].fill_items[].api_code | 是 | String | 列的 `api_code` |
+| data[].fill_items[].label | 是 | String / null | 填写页上显示的标题，未单独设置时为列标题 |
+| data[].fill_items[].notes | 是 | String / null | 填写页上显示的说明，未单独设置时为列说明 |
+| data[].fill_items[].required | 是 | Boolean | 是否必填 |
+
+<!-- /openapi -->
 
 > 注意：数据中的日期时间，使用的是 UTC 时间（例如：`"2026-05-26T02:00:00.000Z"`），接受者需要自行转换为自己所需要的时区（例如北京时间）。
 
 ### 状态码
+
+<!-- openapi:status listFormViews -->
 
 | 状态码 | 说明 |
 | ------ | ------ |
 | 200 | 获取成功 |
 | 401 | 未认证 |
 | 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
 | 404 | 表单不存在或无权访问 |
+
+<!-- /openapi -->
 
 ## 示例代码
 

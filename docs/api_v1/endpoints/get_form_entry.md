@@ -37,10 +37,16 @@ sidebar_label: 获取表单单条数据
 GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries/SERIAL_NUMBER
 ```
 
+<!-- openapi:params getEntry -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | FORM_TOKEN | 是 | String | 表单Token |
-| SERIAL_NUMBER | 是 | Number | 数据序号 |
+| SERIAL_NUMBER | 是 | Integer | 数据序号 |
+| fields | 否 | String | 只返回指定字段，传字段 `api_code` 的 JSON 数组或逗号分隔列表 |
+| include_labels | 否 | Boolean | 为 `true` 时，表单字段的值改为 `{label, value}` 形式 |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -60,20 +66,52 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries/SERIAL_NUMBER
 }
 ```
 
+<!-- openapi:response getEntry -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | form | 是 | String | 表单Token |
 | form_name | 是 | String | 表单标题 |
-| entry | 是 | | 本次请求创建成功的数据 |
-| entry.serial_number | 是 | Number | 数据序号（标识符） |
-| entry.field_* | 是 | | 对应字段的值 |
+| entry | 是 | Object | 本次请求获取的数据 |
+| entry.token | 是 | String | 数据唯一标识 |
+| entry.serial_number | 是 | Integer | 数据序号（标识符） |
+| entry.created_at | 否 | DateTime | 数据提交时间 |
+| entry.updated_at | 否 | DateTime | 数据最后一次变更时间 |
 | entry.creator_name | 否 | String | 本条数据的填写者 |
-| entry.created_at | 是 | Date | 数据提交时间 |
-| entry.updated_at | 是 | Date | 数据最后一次变更时间 |
+| entry.color_mark | 否 | String | 颜色标记 |
+| entry.info_filling_duration | 否 | Number | 填写时长（秒）；Excel 导入、API 提交的数据为空 |
+| entry.info_platform | 否 | String | 填写设备 |
+| entry.info_os | 否 | String | 操作系统 |
+| entry.info_browser | 否 | String | 浏览器 |
+| entry.info_region | 否 | Object | 填写地区 |
+| entry.info_region.country | 否 | String | 国家 |
+| entry.info_region.province | 否 | String | 省份 |
+| entry.info_region.city | 否 | String | 城市 |
+| entry.info_remote_ip | 否 | String | 填写者 IP 地址 |
+| entry.\* | 否 | Any | 对应字段的值 |
+| url | 否 | String | 在金数据中查看该条数据的链接 |
+
+<!-- /openapi -->
 
 > 数据详细结构，请[参考文档](/api_v1/schemas/entry)
 
 > 注意：数据中的日期时间，使用的是 UTC 时间（例如：`"2021-09-28T02:59:42.539Z"`），接受者需要自行转换为自己所需要的时区（例如北京时间）
+
+### 状态码
+
+<!-- openapi:status getEntry -->
+
+| 状态码 | 说明 |
+| ------ | ------ |
+| 200 | 获取成功 |
+| 400 | 参数不合法（如 `fields` 含未知字段） |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
+| 404 | 表单或数据不存在，或无权访问 |
+| 429 | 超过请求速率限制 |
+
+<!-- /openapi -->
 
 ## 示例代码
 

@@ -69,6 +69,8 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN/theme
 }
 ```
 
+<!-- openapi:params updateFormTheme -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | FORM_TOKEN | 是 | String | 表单 Token（URL 路径参数） |
@@ -76,22 +78,42 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN/theme
 | secondary_color | 否 | String | 次色（hex） |
 | wallpaper | 否 | Object | 页面背景设置 |
 | wallpaper.background_color | 否 | String | 页面背景色（hex） |
+| wallpaper.background_image_url | 否 | String | 背景图 URL，由服务端抓取 |
+| wallpaper.background_image_upload_token | 否 | String | 「上传表单图片」的 `form_image_token`（用途 wallpaper），优先级最高 |
+| wallpaper.background_image_attachment_id | 否 | String / null | 「上传表单图片」返回的 `attachment_id`；传 `""` 移除背景图，优先级最低 |
 | header | 否 | Object | 顶部 banner 设置 |
-| header.type | 否 | String | banner 展示类型：`none` / `text` / `image` |
+| header.type | 否 | String | banner 展示类型：`none` / `text` / `image` / `carousel` |
 | header.text | 否 | String | banner 文字（`type=text` 时生效） |
-| header.text_style | 否 | Object | banner 文字样式 |
 | header.background_color | 否 | String | banner 背景色（hex） |
+| header.text_style | 否 | Object | banner 文字样式 |
+| header.text_style.\* | 否 | String | 键为样式名（下划线命名，如 `font_size`），值为样式值 |
 | header.header_image_url | 否 | String | 外链图片 URL，服务端会下载为附件 |
 | header.header_image_base64 | 否 | String | Base64 编码的图片，不建议使用（可能被截断） |
+| header.header_image_upload_token | 否 | String | 「上传表单图片」的 `form_image_token`（用途 header），优先级最高 |
+| header.carousel_images | 否 | Array(Object) | 轮播图，1 ~ 5 张，整体替换；每项三种来源选其一 |
+| header.carousel_images[].image_upload_token | 否 | String | 「上传表单图片」的 `form_image_token`（用途 carousel） |
+| header.carousel_images[].image_url | 否 | String | 轮播图 URL，由服务端抓取 |
+| header.carousel_images[].attachment_id | 否 | String | 该表单已有轮播图的 `attachment_id`，用于保留该图 |
+| header.header_image_attachment_id | 否 | String / null | 「上传表单图片」返回的 `attachment_id`；传 `""` 移除头图，优先级最低 |
+| typography | 否 | Object | 字体样式，与现有样式合并 |
 | typography.form_header | 否 | Object | 表单标题文字样式 |
+| typography.form_header.\* | 否 | String | 键为样式名（下划线命名，如 `font_size`），值为样式值 |
 | typography.field_label | 否 | Object | 字段 label 样式 |
+| typography.field_label.\* | 否 | String | 键为样式名（下划线命名，如 `font_size`），值为样式值 |
 | typography.choice_style | 否 | Object | 选项文字样式 |
+| typography.choice_style.\* | 否 | String | 键为样式名（下划线命名，如 `font_size`），值为样式值 |
+| form_container | 否 | Object | 表单容器样式 |
 | form_container.background_color | 否 | String | 表单容器背景色（hex） |
+| form_container.border_color | 否 | String | 表单容器边框颜色，如 `#E5E7EB` |
+| form_container.border_width | 否 | String | 表单容器边框宽度，如 `1px` |
+| submit_button | 否 | Object | 提交按钮样式 |
 | submit_button.background_color | 否 | String | 提交按钮背景色（hex） |
 | submit_button.color | 否 | String | 提交按钮文字颜色（hex） |
 | submit_button.font_size | 否 | String | 提交按钮字号 |
 | generate_header_image | 否 | Object | 启用 AI 生成 header 图 |
 | generate_header_image.prompt | 否 | String | 自定义图片提示词；不传则基于表单内容自动生成 |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -119,18 +141,51 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN/theme
 }
 ```
 
-| 参数名称 | 说明 |
-| ------ | ------ |
-| form_token | 表单 Token |
-| primary_color | 当前主色 |
-| secondary_color | 当前次色 |
-| wallpaper | 页面背景当前状态 |
-| header | banner 当前状态，含是否有 header 图 |
-| typography | 表单排版当前状态，样式以 CSS 命名（font-size / font-weight / color / text-align） |
-| form_container | 表单容器当前状态 |
-| submit_button | 提交按钮当前状态 |
+<!-- openapi:response updateFormTheme -->
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| form_token | 是 | String | 表单 Token |
+| primary_color | 是 | String / null | 当前主色 |
+| secondary_color | 是 | String / null | 当前次色 |
+| wallpaper | 是 | Object | 页面背景当前状态 |
+| wallpaper.background_color | 否 | String / null | 页面背景色（hex） |
+| wallpaper.has_background_image | 否 | Boolean | 是否有背景图 |
+| wallpaper.background_image_url | 否 | String / null | 背景图 URL；无背景图时为 null |
+| header | 是 | Object | banner 当前状态，含是否有 header 图 |
+| header.type | 否 | String / null | banner 展示类型：`none` / `text` / `image` / `carousel` |
+| header.text | 否 | String / null | banner 文字（`type=text` 时生效） |
+| header.text_style | 否 | Object / null | banner 文字样式，键为 CSS 连字符命名（如 `font-size`） |
+| header.background_color | 否 | String / null | banner 背景色（hex） |
+| header.has_header_image | 否 | Boolean | 是否有头图 |
+| header.header_image_url | 否 | String / null | 头图 URL；无头图时为 null |
+| header.carousel_images | 否 | Array(Object) | 轮播图，按展示顺序排列 |
+| header.carousel_images[].attachment_id | 是 | String | 轮播图的 `attachment_id`，更新时传回可保留该图 |
+| header.carousel_images[].image_url | 是 | String | 轮播图 URL |
+| typography | 是 | Object | 表单排版当前状态，样式以 CSS 命名（font-size / font-weight / color / text-align） |
+| typography.form_header | 否 | Object / null | 表单标题文字样式 |
+| typography.field_label | 否 | Object / null | 字段 label 样式 |
+| typography.choice_style | 否 | Object / null | 选项文字样式 |
+| typography.field_space | 否 | String / null | 字段间距 |
+| form_container | 是 | Object | 表单容器当前状态 |
+| form_container.background_color | 否 | String / null | 表单容器背景色（hex） |
+| form_container.max_width | 否 | String / null | 表单容器最大宽度 |
+| form_container.border_color | 否 | String / null | 表单容器边框颜色，如 `#E5E7EB` |
+| form_container.border_width | 否 | String / null | 表单容器边框宽度，如 `1px` |
+| form_container.shadow | 否 | Boolean | 表单容器是否显示阴影 |
+| form_container.indent_on_large_phone | 否 | Boolean | 大屏手机上表单容器是否缩进 |
+| submit_button | 是 | Object | 提交按钮当前状态 |
+| submit_button.background_color | 否 | String / null | 提交按钮背景色（hex） |
+| submit_button.color | 否 | String / null | 提交按钮文字颜色（hex） |
+| submit_button.font_size | 否 | String / null | 提交按钮字号 |
+| submit_button.shadow | 否 | Boolean | 提交按钮是否显示阴影 |
+| submit_button.hidden | 否 | Boolean | 是否隐藏提交按钮 |
+
+<!-- /openapi -->
 
 ### 状态码
+
+<!-- openapi:status updateFormTheme -->
 
 | 状态码 | 说明 |
 | ------ | ------ |
@@ -138,7 +193,10 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN/theme
 | 400 | 未指定任何主题操作；主题保存校验失败 |
 | 401 | 未认证 |
 | 402 | 当前套餐不支持 V1 API；或者 AI 点数不足 |
+| 403 | 无权限（如 OAuth scope 不足） |
 | 404 | 表单不存在或无权访问 |
+
+<!-- /openapi -->
 
 ## 示例代码
 

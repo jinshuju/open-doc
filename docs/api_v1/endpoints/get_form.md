@@ -37,9 +37,18 @@ sidebar_label: 获取表单详细结构
 GET https://jinshuju.net/api/v1/forms/FORM_TOKEN
 ```
 
+<!-- openapi:params getForm -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | FORM_TOKEN | 是 | String | 表单Token |
+| include_analytics | 否 | Boolean | 为 `true` 时，可统计的字段返回 `analytics` |
+| include_theme | 否 | Boolean | 为 `true` 时返回 `theme`（表单主题） |
+| include_field_rules | 否 | Boolean | 为 `true` 时返回 `field_rules`（字段显示规则） |
+| include_extended_attributes | 否 | Boolean | 为 `true` 时返回 `extended_attributes`（数据来源链接） |
+| include_transactions | 否 | Boolean | 为 `true` 时，绑定了收款账户的表单返回 `transactions` |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -96,22 +105,62 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN
 }
 ```
 
+<!-- openapi:response getForm -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | name | 是 | String | 表单标题 |
-| description | 是 | String | 表单描述 |
-| fields | 是 | Array | 表单字段数据 |
-| field_* | 是 | String | 字段标识符（Key） |
-| field_*.label | 是 | String | 字段标题 |
-| field_*.type | 是 | String | 字段类型 |
-| field_*.notes | 是 | String | 字段提示 |
-| field_*.private | 是 | Bool | 字段隐藏 |
-| field_*.validation | 否 | Object | 字段校验信息 |
+| token | 是 | String | 表单 Token |
+| url | 是 | String | 表单的公开填写链接，不能用 token 自行拼接 |
+| description | 是 | String / null | 表单描述 |
+| fields | 是 | Array(Object) | 表单字段数据 |
+| fields[].\* | 否 | Object | 键为字段的 `api_code`，值为字段定义 |
+| fields[].\*.label | 是 | String | 字段标题 |
+| fields[].\*.type | 是 | String | 字段类型 |
+| fields[].\*.notes | 是 | String / null | 字段提示 |
+| fields[].\*.private | 是 | Boolean | 字段隐藏 |
+| fields[].\*.validation | 是 | Object | 字段校验信息 |
 | setting | 是 | Object | 表单设置对象；字段列表与含义见[表单设置 Schema](/api_v1/schemas/form_setting)。未启用的嵌套规则（如 `by_time_range_close_rule`）以 `null` 返回。 |
+| theme | 否 | Object | 表单主题；仅 `include_theme=true` 时返回 |
+| field_rules | 否 | Array(Object) | 字段显示规则；仅 `include_field_rules=true` 时返回 |
+| field_rules[].index | 是 | Integer | 规则的 0 起序号；[编辑表单](/api_v1/endpoints/update_form)按此值定位要更新/删除的规则 |
+| field_rules[].targets | 是 | Array(String) | 条件满足时显示的字段 `api_code`；`abort` 时固定为 `["DYNAMIC_TARGETS"]` |
+| field_rules[].targets_display_mode | 是 | String | `show` = 条件满足时显示 `targets` 中的字段；`abort` = 条件满足时终止填写 |
+| field_rules[].operator | 是 | String | 多个条件之间的关系：`and` = 全部满足；`or` = 任一满足 |
+| field_rules[].conditions | 是 | Array(Object) | 触发条件数组 |
+| field_rules[].conditions[].trigger | 是 | String | 触发字段的 `api_code` |
+| field_rules[].conditions[].comparator | 是 | String | 比较符，取值见[获取表单字段规则](/api_v1/endpoints/get_form_field_rules) |
+| field_rules[].conditions[].value | 是 | Any | 比较值，形态取决于 `comparator` |
+| extended_attributes | 否 | Array(Object) | 数据来源链接；仅 `include_extended_attributes=true` 时返回 |
+| extended_attributes[].value | 是 | String | 扩展属性值 |
+| extended_attributes[].url | 是 | String | 带有该属性值的填写链接 |
+| extended_attributes[].cname | 是 | Boolean | 链接是否使用自定义域名 |
+| extended_attributes[].created_at | 是 | DateTime / null | 创建时间 |
+| transactions | 否 | Object | 收款统计；仅 `include_transactions=true` 且表单绑定了收款账户时返回 |
+| transactions.paid | 是 | Object | 已支付和退款中的数据统计，金额不扣除退款 |
+| transactions.paid.amount | 是 | Number | 订单总额之和，单位：元 |
+| transactions.paid.count | 是 | Integer | 数据条数 |
+
+<!-- /openapi -->
 
 > 字段详细数据，请[参考文档](/api_v1/schemas/field)
 >
 > **提示**：[创建表单](/api_v1/endpoints/create_form) / [编辑表单](/api_v1/endpoints/update_form) 成功时返回的响应体结构与本接口一致，因此写入后可以直接从响应中读到最新的 `setting`。如果只想单独读取表单设置，也可以调用 `GET /api/v1/forms/FORM_TOKEN/setting`。
+
+### 状态码
+
+<!-- openapi:status getForm -->
+
+| 状态码 | 说明 |
+| ------ | ------ |
+| 200 | 获取成功 |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
+| 404 | 表单不存在或无权访问 |
+| 429 | 超过请求速率限制 |
+
+<!-- /openapi -->
 
 ## 示例代码
 

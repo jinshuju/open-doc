@@ -39,9 +39,13 @@ sidebar_label: 获取表单字段规则
 GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/field_rules
 ```
 
+<!-- openapi:params listFieldRules -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | FORM_TOKEN | 是 | String | 表单 Token（URL 路径参数） |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -71,18 +75,22 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/field_rules
 }
 ```
 
+<!-- openapi:response listFieldRules -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| count | 是 | Number | 本次返回的规则数量 |
-| data | 是 | Array | 规则数组 |
-| data[].index | 是 | Number | 规则的 0 起序号；[编辑表单](/api_v1/endpoints/update_form)按此值定位要更新/删除的规则 |
+| count | 是 | Integer | 本次返回的规则数量 |
+| data | 是 | Array(Object) | 规则数组 |
+| data[].index | 是 | Integer | 规则的 0 起序号；[编辑表单](/api_v1/endpoints/update_form)按此值定位要更新/删除的规则 |
 | data[].targets | 是 | Array(String) | 条件满足时显示的字段 `api_code` 列表。`targets_display_mode` 为 `abort` 时该字段返回固定占位值 `["DYNAMIC_TARGETS"]`（终止填写不需要目标字段） |
 | data[].targets_display_mode | 是 | String | `show` = 条件满足时显示 `targets` 中的字段；`abort` = 条件满足时终止填写（隐藏后续所有字段） |
 | data[].operator | 是 | String | 多个条件之间的关系：`and` = 全部满足；`or` = 任一满足 |
-| data[].conditions | 是 | Array | 触发条件数组 |
+| data[].conditions | 是 | Array(Object) | 触发条件数组 |
 | data[].conditions[].trigger | 是 | String | 触发字段的 `api_code` |
 | data[].conditions[].comparator | 是 | String | 比较符，取值取决于触发字段类型，见下表 |
-| data[].conditions[].value | 是 | Array \| String \| Number | 比较值；形态取决于 `comparator`，见下表 |
+| data[].conditions[].value | 是 | Any | 比较值；形态取决于 `comparator`，见下表 |
+
+<!-- /openapi -->
 
 比较符与触发字段类型的对应关系：
 
@@ -96,12 +104,17 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/field_rules
 
 ### 状态码
 
+<!-- openapi:status listFieldRules -->
+
 | 状态码 | 说明 |
 | ------ | ------ |
 | 200 | 获取成功 |
 | 401 | 未认证 |
 | 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
 | 404 | 表单不存在或无权访问 |
+
+<!-- /openapi -->
 
 ## 示例代码
 

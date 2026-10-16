@@ -39,9 +39,13 @@ sidebar_label: 获取测评设置
 GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/evaluation_setting
 ```
 
+<!-- openapi:params getEvaluationSetting -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | FORM_TOKEN | 是 | String | 表单 Token（URL 路径参数） |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -72,25 +76,45 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/evaluation_setting
 }
 ```
 
+<!-- openapi:response getEvaluationSetting -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| notice_after_filling_mode | 是 | String | 提交后展示：`reports` = 显示测评报告；`customize` = 自定义样式；`none` = 不显示。当前套餐不支持时该值恒为 `none` |
-| show_report_score | 否 | Bool | 报告中是否显示测评得分 |
-| show_report_radar | 否 | Bool | 报告中是否显示维度雷达图（需配置维度） |
-| show_indicator_comments | 否 | Bool | 报告中是否显示各维度的结果分析与建议 |
-| show_comments | 否 | Bool | 是否开启测评评语 |
+| notice_after_filling_mode | 否 | String | 提交后展示：`reports` = 显示测评报告；`customize` = 自定义样式；`none` = 不显示。当前套餐不支持时该值恒为 `none` |
+| show_report_score | 否 | Boolean | 报告中是否显示测评得分 |
+| show_report_radar | 否 | Boolean | 报告中是否显示维度雷达图（需配置维度） |
+| show_indicator_comments | 否 | Boolean | 报告中是否显示各维度的结果分析与建议 |
+| show_comments | 否 | Boolean | 是否开启测评评语 |
 | need_attention | 否 | String | 测评须知内容 |
-| evaluation_comments | 否 | Array | 总分区间评语；未开启时不返回该字段。结构同考试的 `interval_comments` |
+| evaluation_comments | 否 | Array(Object) | 总分区间评语；未开启时不返回该字段。按条件编写的评语以 `id` + `conditions` 代替区间 |
+| evaluation_comments[].start_point | 否 | Number | 分数区间左端（含） |
+| evaluation_comments[].end_point | 否 | Number | 分数区间右端（含） |
+| evaluation_comments[].comment | 否 | String | 评语内容（富文本） |
+| evaluation_comments[].retry | 否 | Boolean | 是否允许再答一次 |
+| evaluation_comments[].id | 否 | String | 按条件编写的评语 id，更新时须原样传回 |
+| evaluation_comments[].conditions | 否 | Array(Object) | 按条件编写的评语的判定条件 |
+| evaluation_comments[].conditions[].trigger | 否 | String | 条件字段的 `api_code` |
+| evaluation_comments[].conditions[].operator | 否 | String | 比较运算符 |
+| evaluation_comments[].conditions[].value | 否 | Any | 条件值 |
+| evaluation_comments[].conditions[].group_index | 否 | Integer | 条件分组序号 |
 | indicator_setting | 否 | Object | 维度设置；未配置任何维度时不返回该字段 |
-| indicator_setting.indicators_scoring_mode | 是 | String | 维度得分算法：`summation` = 求和；`average` = 平均 |
-| indicator_setting.indicators | 是 | Array | 维度列表 |
-| indicator_setting.indicators[].api_code | 是 | String | 维度 `api_code`；**修改维度时必须回传**以保持身份 |
-| indicator_setting.indicators[].name | 是 | String | 维度名称 |
-| indicator_setting.indicators[].field_api_codes | 是 | Array(String) | 该维度绑定的计分题 `api_code` 列表 |
+| indicator_setting.indicators_scoring_mode | 否 | String | 维度得分算法：`summation` = 求和；`average` = 平均；`customization` = 自定义公式 |
+| indicator_setting.indicators | 否 | Array(Object) | 维度列表 |
+| indicator_setting.indicators[].api_code | 否 | String | 维度 `api_code`；**修改维度时必须回传**以保持身份 |
+| indicator_setting.indicators[].name | 否 | String | 维度名称 |
+| indicator_setting.indicators[].field_api_codes | 否 | Array(String) | 该维度绑定的计分题 `api_code` 列表 |
 | indicator_setting.indicators[].standard_score | 否 | Number | 维度标准分（雷达图参考值） |
-| indicator_setting.indicators[].indicator_comments | 是 | Array | 该维度的分数区间评语，无则返回空数组 |
+| indicator_setting.indicators[].indicator_comments | 否 | Array(Object) | 该维度的分数区间评语，无则返回空数组 |
+| indicator_setting.indicators[].indicator_comments[].start_point | 否 | Number | 分数区间左端（含） |
+| indicator_setting.indicators[].indicator_comments[].end_point | 否 | Number | 分数区间右端（含） |
+| indicator_setting.indicators[].indicator_comments[].comment | 否 | String | 该区间展示的评语 |
+| indicator_setting.indicators[].indicator_comments[].retry | 否 | Boolean | 该区间是否允许再答一次 |
+
+<!-- /openapi -->
 
 ### 状态码
+
+<!-- openapi:status getEvaluationSetting -->
 
 | 状态码 | 说明 |
 | ------ | ------ |
@@ -98,7 +122,10 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/evaluation_setting
 | 400 | 该表单不是测评场景的表单 |
 | 401 | 未认证 |
 | 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
 | 404 | 表单不存在或无权访问 |
+
+<!-- /openapi -->
 
 ## 示例代码
 

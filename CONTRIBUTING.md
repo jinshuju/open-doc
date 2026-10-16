@@ -49,7 +49,8 @@ For that to work, an endpoint page needs to follow the existing shape:
 3. Optionally, a parameter table right after the code block, with a `参数名称` column plus
    any of `是否必须` / `类型` / `说明`. Uppercase placeholders in the URL (`FORM_TOKEN`)
    become path parameters, names appearing in a query string become query parameters, and
-   the rest become body fields.
+   the rest become body fields. On the existing pages the rows of this table follow
+   openapi.yaml (see [Tables generated from openapi.yaml](#tables-generated-from-openapiyaml)).
 
 **If a page does not match this shape, the panel simply does not appear** and the page
 renders exactly as it would without the runner. Nothing breaks — so an unusual page is
@@ -69,5 +70,54 @@ sidebar_label: 编辑表单  # shorter label than the page title
 
 `method` is the one piece of information the runner cannot derive at runtime: the sidebar
 shows badges for pages the reader has not opened yet, and only the current page's DOM is
-available. It is duplicated from the request line in the body, so if the two ever disagree
-the badge is wrong — the panel itself always reads the body, so it stays correct.
+available. It is duplicated from the request line in the body; on a page with generated
+tables, `npm run generate` fails when the two disagree.
+
+## Tables generated from openapi.yaml
+
+The parameter, response and status-code tables of the API v1 pages follow
+[openapi.yaml](https://jinshuju.net/api/v1/openapi.yaml), the spec the API itself validates
+requests against. `spec/openapi.yaml` is a verbatim copy of it. A page marks each such table
+with a pair of comments that name the operation (its `operationId` in the spec):
+
+```markdown
+<!-- openapi:params getFormView -->     path, query and body parameters
+<!-- openapi:response getFormView -->   fields of the 2xx response body
+<!-- openapi:status getFormView -->     status codes
+| … |
+<!-- /openapi -->
+```
+
+Between a pair, `npm run generate` decides the rows (which parameters, fields and status
+codes there are) and the 参数名称 / 是否必须 / 类型 columns, so **do not edit those by hand**.
+The 说明 column is the page's own: these pages are read by people, and a short line written
+for them reads better than the spec's description. A row keeps its 说明 by name from one run
+to the next. A row the spec adds comes in with an empty 说明, and the run fails until somebody
+writes it; the report quotes the spec's description to write it from. A row the spec drops
+goes, with its 说明.
+
+Fields whose schema has a page of its own (field definitions, form settings) are not spelled
+out property by property; only the sub-rows a page lists under them stay, while the spec
+still has them.
+
+Everything outside the markers is the page's own too: the introduction, the plan table,
+notes, the JSON examples and the code samples. Which endpoints have a page at all is decided
+here, not by the spec.
+
+`npm run generate` also holds the hand-written parts the runner sends to the spec: the
+request line under `### Request` must be an operation that exists, the sidebar `method`
+must match it, and the JSON body example must be one the operation accepts.
+
+```bash
+npm run generate                    # bring the tables in line with spec/openapi.yaml
+npm run generate:check              # change nothing; fail when anything is out of date or a 说明 is empty
+node scripts/generate.mjs --rows <page>  # list a page's rows, each 说明 next to what the spec says
+npm run spec:update                 # fetch the published openapi.yaml, then generate
+node scripts/spec-diff.mjs <old openapi.yaml> spec/openapi.yaml  # operations added, removed, or changed on a page
+```
+
+Bringing the docs up to date with a new openapi.yaml takes judgement (writing the 说明 of new
+rows, deciding whether a new endpoint gets a page, rereading the hand-written examples), so it
+is done with an AI agent rather than unattended. The steps are in the project skill
+[`.claude/skills/sync-openapi/SKILL.md`](.claude/skills/sync-openapi/SKILL.md); in Claude
+Code, run `/sync-openapi`.

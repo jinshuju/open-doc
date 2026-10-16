@@ -39,9 +39,13 @@ GET https://jinshuju.net/api/v1/folders
 GET https://jinshuju.net/api/v1/folders?limit=20
 ```
 
+<!-- openapi:params listFolders -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| limit | 否 | Number | 返回条数上限，默认 50，最多 100 |
+| limit | 否 | Integer | 返回条数上限，默认 50，最多 100 |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -57,22 +61,32 @@ GET https://jinshuju.net/api/v1/folders?limit=20
 }
 ```
 
+<!-- openapi:response listFolders -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| total | 是 | Number | 当前账号可管理的文件夹总数 |
-| count | 是 | Number | 本次请求返回的文件夹数量 |
-| data | 是 | Array | 文件夹信息数组 |
+| total | 是 | Integer | 当前账号可管理的文件夹总数 |
+| count | 是 | Integer | 本次请求返回的文件夹数量 |
+| data | 是 | Array(Object) | 文件夹信息数组 |
 | data[].token | 是 | String | 文件夹 token |
 | data[].name | 是 | String | 文件夹名称 |
+| data[].kind | 是 | String / null | 文件夹类型：`form` / `table` / `quickpay`；为 `null` 时视为 `form` |
 | data[].created_at | 是 | DateTime | 文件夹创建时间 |
 
+<!-- /openapi -->
+
 ### 状态码
+
+<!-- openapi:status listFolders -->
 
 | 状态码 | 说明 |
 | ------ | ------ |
 | 200 | 成功 |
 | 401 | 未认证 |
 | 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
+
+<!-- /openapi -->
 
 ## 示例代码
 

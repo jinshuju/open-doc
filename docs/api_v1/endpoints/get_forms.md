@@ -46,10 +46,19 @@ GET https://jinshuju.net/api/v1/forms?q=报名
 GET https://jinshuju.net/api/v1/forms?next=60cc514761936ced06123456
 ```
 
+<!-- openapi:params listForms -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | q | 否 | String | 关键词模糊匹配表单名称（不区分大小写）。匹配范围包含表单名称（`name`）和子标题（`subname`）。`total` 返回的是匹配后的总数。 |
-| next | 否 | String | 分页参数。返回本次ID记录之后的表单 |
+| filters | 否 | String | 筛选条件，JSON 数组，多个条件为 AND，如 `[{"field":"entries_count","operator":"gte","value":1}]`；可筛选 `form_name` / `created_at` / `last_entry_created_at` / `entries_count` |
+| sort | 否 | String | 排序规则，JSON 数组，如 `[{"field":"created_at","order":"desc"}]`；可排序 `created_at` / `last_entry_created_at` / `entries_count`。翻页时须带相同的 `sort` |
+| next | 否 | String | 分页参数。原样传回上一页响应中的 `next`，不可与 `skip` 同用 |
+| skip | 否 | Integer | 起始行偏移，从 0 起，最大 10000；不可与 `next` 同用 |
+| limit | 否 | Integer | 每页数量，默认 50，最大 1000；传 0 时只返回 `total` |
+| include_transactions | 否 | Boolean | 为 `true` 时，绑定了收款账户的表单返回 `transactions` |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -81,19 +90,45 @@ GET https://jinshuju.net/api/v1/forms?next=60cc514761936ced06123456
 }
 ```
 
-| 参数名称 | 是否必须 | 类型 | 说明                        |
-| ------ | ------ | ------ |---------------------------|
-| total | 是 | Number | API使用者在对应账户下创建的所有表单总数     |
-| count | 是 | Number | 本次请求返回的表单数量               |
-| data | 是 | Array | 表单信息数组                    |
-| data[].name | 是 | String | 表单名称                      |
-| data[].token | 是 | String | 表单Token                   |
-| data[].tags | 否 | Array(String) | 表单对应的标签                   |
-| data[].created_at |是| DateTime | 表单创建时间                    |
-| data[].creator.name | 否 | String | 表单创建者的name/nickname       | 
-| next | 否 | String | 分页参数。本次请求分页ID。可用于请求下一页数据。"next": null表示后续无新分页 |
+<!-- openapi:response listForms -->
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| total | 是 | Integer | 符合条件的表单总数（含共享的表单） |
+| count | 是 | Integer | 本次请求返回的表单数量 |
+| data | 是 | Array(Object) | 表单信息数组 |
+| data[].name | 是 | String | 表单名称 |
+| data[].token | 是 | String | 表单Token |
+| data[].tags | 是 | Array(String) | 表单对应的标签 |
+| data[].created_at | 是 | DateTime | 表单创建时间 |
+| data[].entries_count | 是 | Integer | 表单的数据条数 |
+| data[].last_entry_created_at | 是 | DateTime / null | 最近一条数据的提交时间；从未收到数据时为 null |
+| data[].creator | 是 | Object | 表单创建者 |
+| data[].creator.name | 否 | String / null | 表单创建者的name/nickname |
+| data[].transactions | 否 | Object | 收款统计；仅 `include_transactions=true` 且表单绑定了收款账户时返回 |
+| data[].transactions.paid | 是 | Object | 已支付和退款中的数据统计，金额不扣除退款 |
+| data[].transactions.paid.amount | 是 | Number | 订单总额之和，单位：元 |
+| data[].transactions.paid.count | 是 | Integer | 数据条数 |
+| next | 是 | String / null | 分页参数。原样传回即可请求下一页数据；null 表示没有下一页 |
+
+<!-- /openapi -->
 
 > 注意：数据中的日期时间，使用的是 UTC 时间（例如：`"2021-09-28T02:59:42.539Z"`），接受者需要自行转换为自己所需要的时区（例如北京时间）
+
+### 状态码
+
+<!-- openapi:status listForms -->
+
+| 状态码 | 说明 |
+| ------ | ------ |
+| 200 | 获取成功 |
+| 400 | 参数不合法，如 `filters` / `sort` 格式错误 |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
+| 429 | 超过请求速率限制 |
+
+<!-- /openapi -->
 
 ## 示例代码
 

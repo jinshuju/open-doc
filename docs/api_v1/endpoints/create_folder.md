@@ -41,9 +41,14 @@ POST https://jinshuju.net/api/v1/folders
 }
 ```
 
+<!-- openapi:params createFolder -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | name | 是 | String | 文件夹名称 |
+| kind | 否 | String / null | 文件夹类型：`form`（放表单）/ `table`（放表格），默认 `form` |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -55,20 +60,30 @@ POST https://jinshuju.net/api/v1/folders
 }
 ```
 
+<!-- openapi:response createFolder -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | token | 是 | String | 文件夹 token |
 | name | 是 | String | 文件夹名称 |
+| kind | 是 | String / null | 文件夹类型：`form` / `table` / `quickpay`；为 `null` 时视为 `form` |
 | created_at | 是 | DateTime | 文件夹创建时间 |
 
+<!-- /openapi -->
+
 ### 状态码
+
+<!-- openapi:status createFolder -->
 
 | 状态码 | 说明 |
 | ------ | ------ |
 | 201 | 创建成功 |
-| 400 | name 为空 |
+| 400 | `name` 为空或 `kind` 不合法 |
 | 401 | 未认证 |
 | 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
+
+<!-- /openapi -->
 
 ## 示例代码
 

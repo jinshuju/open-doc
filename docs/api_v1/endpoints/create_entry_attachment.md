@@ -46,12 +46,22 @@ field_api_code=field_1
 file=@/path/to/report.pdf
 ```
 
+<!-- openapi:params uploadEntryAttachment -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | FORM_TOKEN | 是 | String | 表单 Token |
 | field_api_code | 是 | String | 目标附件字段的 API Code，可通过 [get form](/api_v1/endpoints/get_form) 获取 |
 | dimension_api_code | 否 | String | 当 `field_api_code` 指向「表格字段」时必须，指定表格内的附件子字段的 API Code |
-| file | 是 | File | 要上传的文件 |
+| attachment_token | 否 | String | 一次性上传令牌，以 `entry_att_tok_` 开头；传入时无需 Bearer 认证 |
+| file | 否 | String | 要上传的文件 |
+| base64 | 否 | String | Base64 编码的文件内容，解码后最大 5 MB；与 `file` 二选一 |
+| data | 否 | String | `base64` 的别名 |
+| file_name | 否 | String | Base64 上传时的文件名，默认 `attachment` |
+| filename | 否 | String | `file_name` 的别名 |
+| content_type | 否 | String | Base64 上传时的 MIME 类型，默认取自 data URI 前缀 |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -66,14 +76,18 @@ file=@/path/to/report.pdf
 }
 ```
 
+<!-- openapi:response uploadEntryAttachment -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | id | 是 | String | 附件的标识符，用于在新增/修改数据时填入附件字段 |
 | file_name | 是 | String | 文件名 |
 | content_type | 是 | String | 文件 MIME 类型 |
-| file_size | 是 | Number | 文件大小（字节） |
+| file_size | 是 | Integer | 文件大小（字节） |
 | download_url | 是 | String | 附件下载地址 |
 | preview_url | 否 | String | 预览地址，仅当附件为图片时返回 |
+
+<!-- /openapi -->
 
 ### 在新增数据时引用附件
 
@@ -84,6 +98,22 @@ file=@/path/to/report.pdf
     "field_1": ["5f3a1b2c4d5e6f7a8b9c0d1e", "5f3a1b2c4d5e6f7a8b9c0d2f"]
 }
 ```
+
+### 状态码
+
+<!-- openapi:status uploadEntryAttachment -->
+
+| 状态码 | 说明 |
+| ------ | ------ |
+| 201 | 上传成功 |
+| 400 | 参数不合法（如未传文件，或字段不是附件字段） |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
+| 404 | 表单或字段不存在，或无权访问 |
+| 422 | 文件超出大小上限、类型不被允许或上传失败 |
+
+<!-- /openapi -->
 
 ## 错误响应
 

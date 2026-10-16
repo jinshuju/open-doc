@@ -50,7 +50,25 @@ docs/
 ├── embedded/             # 表单嵌入文档
 ├── api_code_alias/       # API CODE 重命名
 └── best_practice.md      # 场景案例
+spec/
+└── openapi.yaml          # 线上 openapi.yaml 的原样副本
 ```
+
+## API 文档与 openapi.yaml
+
+API v1 接口页里的参数表、响应字段表和状态码表夹在 `<!-- openapi:… -->` 注释之间：
+
+- 哪些行、参数名称、是否必须、类型：按 [openapi.yaml](https://jinshuju.net/api/v1/openapi.yaml) 生成，不要手改。
+- 说明：手写，力求简短，生成时按行名保留。
+- 简介、示例和代码示例：仍是手写的。
+
+```bash
+npm run generate        # 让接口页里的表格跟上 spec/openapi.yaml
+npm run generate:check  # 只检查，不改文件；有空着的说明也会失败
+npm run spec:update     # 拉取最新的 openapi.yaml 后再生成
+```
+
+openapi.yaml 有变化时，交给 AI 按项目里的 skill [`.claude/skills/sync-openapi`](.claude/skills/sync-openapi/SKILL.md) 更新：在 Claude Code 里运行 `/sync-openapi`。它会拉取 spec、更新表格、给新出现的行写说明，并核对手写的示例。详见 [CONTRIBUTING.md](CONTRIBUTING.md#tables-generated-from-openapiyaml)。
 
 ## 维护状态
 

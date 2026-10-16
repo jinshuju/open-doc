@@ -49,10 +49,14 @@ POST https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries/batch
 }
 ```
 
+<!-- openapi:params createEntriesBatch -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | FORM_TOKEN | 是 | String | 表单 Token |
-| entries | 是 | Array | 数据对象数组，最多 200 条；每个元素的格式同[新增单条数据](/api_v1/endpoints/create_form_entry) |
+| entries | 是 | Array(Object) | 数据对象数组，最多 200 条；每个元素的格式同[新增单条数据](/api_v1/endpoints/create_form_entry) |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -74,12 +78,33 @@ POST https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries/batch
 }
 ```
 
+<!-- openapi:response createEntriesBatch -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| created_count | 是 | Number | 本次成功写入的数据条数 |
-| errors | 是 | Array | 校验失败的数据列表，元素为 `{ index, reason }` |
-| errors[].index | 是 | Number | 出错数据在请求 `entries` 数组中的下标（从 0 开始） |
+| created_count | 是 | Integer | 本次成功写入的数据条数 |
+| errors | 是 | Array(Object) | 校验失败的数据列表，元素为 `{ index, reason }` |
+| errors[].index | 是 | Integer | 出错数据在请求 `entries` 数组中的下标（从 0 开始） |
 | errors[].reason | 是 | String | 该条数据的失败原因 |
+
+<!-- /openapi -->
+
+### 状态码
+
+<!-- openapi:status createEntriesBatch -->
+
+| 状态码 | 说明 |
+| ------ | ------ |
+| 201 | 至少有一条数据写入成功（可能伴随部分 `errors`） |
+| 400 | `entries` 为空或超过 200 条 |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 写入后会超出表单数据量上限，或 OAuth scope 不足 |
+| 404 | 表单不存在或无权访问 |
+| 422 | `entries` 全部校验失败，无任何数据写入 |
+| 429 | 超过请求速率限制 |
+
+<!-- /openapi -->
 
 ## 错误响应
 

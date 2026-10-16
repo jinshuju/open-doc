@@ -37,10 +37,14 @@ sidebar_label: 删除单条数据
 DELETE https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries/SERIAL_NUMBER
 ```
 
+<!-- openapi:params deleteEntry -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | FORM_TOKEN | 是 | String | 表单Token |
-| SERIAL_NUMBER | 是 | Number | 数据序号 |
+| SERIAL_NUMBER | 是 | Integer | 数据序号 |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -50,9 +54,29 @@ DELETE https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries/SERIAL_NUMBER
 }
 ```
 
+<!-- openapi:response deleteEntry -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| serial_number | 是 | Number | 数据序号（标识符） |
+| serial_number | 是 | Integer | 数据序号（标识符） |
+
+<!-- /openapi -->
+
+### 状态码
+
+<!-- openapi:status deleteEntry -->
+
+| 状态码 | 说明 |
+| ------ | ------ |
+| 200 | 删除成功 |
+| 400 | 删除失败（如表单状态不允许删除） |
+| 401 | 未认证 |
+| 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
+| 404 | 表单或数据不存在，或无权访问 |
+| 429 | 超过请求速率限制 |
+
+<!-- /openapi -->
 
 ## 示例代码
 

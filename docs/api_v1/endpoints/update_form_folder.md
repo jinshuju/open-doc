@@ -50,10 +50,14 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN/folder
 }
 ```
 
+<!-- openapi:params moveFormToFolder -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | FORM_TOKEN | 是 | String | 表单 Token（URL 路径参数） |
-| folder_token | 是 | String \| null | 目标文件夹 token；传 `null` 表示移出文件夹；**字段必须存在**，否则返回 400 |
+| folder_token | 是 | String / null | 目标文件夹 token；传 `null` 表示移出文件夹；**字段必须存在**，否则返回 400 |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -66,20 +70,29 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN/folder
 
 移出文件夹时 `folder_token` 为 `null`。
 
+<!-- openapi:response moveFormToFolder -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | form_token | 是 | String | 表单 Token |
-| folder_token | 是 | String \| null | 表单当前所在文件夹 token；`null` 表示不在任何文件夹 |
+| folder_token | 是 | String / null | 表单当前所在文件夹 token；`null` 表示不在任何文件夹 |
+
+<!-- /openapi -->
 
 ### 状态码
+
+<!-- openapi:status moveFormToFolder -->
 
 | 状态码 | 说明 |
 | ------ | ------ |
 | 200 | 成功 |
-| 400 | 请求体缺少 `folder_token` 字段 |
+| 400 | 请求体缺少 `folder_token` 字段，或文件夹类型与表单不符 |
 | 401 | 未认证 |
 | 402 | 当前套餐不支持 V1 API |
+| 403 | 无权限（如 OAuth scope 不足） |
 | 404 | 表单不存在或无权访问；或指定的文件夹不存在/无权管理 |
+
+<!-- /openapi -->
 
 > **提示**：出于避免 id 外泄的考虑，`folder_token` 参数**只接受文件夹的 token**（可通过[获取文件夹列表](/api_v1/endpoints/get_folders)得到）；传入 ObjectId 会返回 404。
 
