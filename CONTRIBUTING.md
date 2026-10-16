@@ -105,12 +105,14 @@ must match it, and the JSON body example must be one the operation accepts.
 
 ```bash
 npm run generate            # rewrite the generated tables and spec/openapi.zh-Hans.yaml
-npm run generate:check      # change nothing; fail when anything is out of date (CI runs this)
+npm run generate:check      # change nothing; fail when anything is out of date
 npm run generate -- --gaps  # also list the generated rows openapi.yaml gives no description
 npm run spec:update         # fetch the published openapi.yaml, then generate
+node scripts/spec-diff.mjs <old openapi.yaml> spec/openapi.yaml  # operations added, removed, or changed on a page
 ```
 
-Every day the `Sync openapi.yaml` workflow fetches the published spec and, when it changed,
-opens a pull request with the regenerated pages. That pull request lists the operations
-added to or removed from the spec and the strings that still need Chinese. It fails its
-checks until every `zh` is filled in.
+Bringing the docs up to date with a new openapi.yaml takes judgement (writing the Chinese,
+deciding whether a new endpoint gets a page, rereading the hand-written examples), so it is
+done with an AI agent rather than unattended. The steps are in the project skill
+[`.claude/skills/sync-openapi/SKILL.md`](.claude/skills/sync-openapi/SKILL.md); in Claude
+Code, run `/sync-openapi`.

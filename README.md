@@ -61,11 +61,11 @@ API v1 接口页里的参数表、响应字段表和状态码表由 [openapi.yam
 
 ```bash
 npm run generate        # 按 spec/ 重新生成接口页里的表格
-npm run generate:check  # 只检查，不改文件（CI 会跑）
+npm run generate:check  # 只检查，不改文件
 npm run spec:update     # 拉取最新的 openapi.yaml 后再生成
 ```
 
-每天会有工作流拉取线上的 openapi.yaml，有变化就开 PR。新出现的英文描述需要在 `spec/openapi.zh-Hans.yaml` 里补上中文，补齐之前检查不会通过。详见 [CONTRIBUTING.md](CONTRIBUTING.md#tables-generated-from-openapiyaml)。
+openapi.yaml 有变化时，交给 AI 按项目里的 skill [`.claude/skills/sync-openapi`](.claude/skills/sync-openapi/SKILL.md) 更新：在 Claude Code 里运行 `/sync-openapi`。它会拉取 spec、重新生成表格、在 `spec/openapi.zh-Hans.yaml` 里补上新英文描述的中文，并核对手写的示例。详见 [CONTRIBUTING.md](CONTRIBUTING.md#tables-generated-from-openapiyaml)。
 
 ## 维护状态
 

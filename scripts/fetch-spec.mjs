@@ -1,5 +1,5 @@
-// Downloads the published openapi.yaml into spec/openapi.yaml, verbatim. The
-// spec-sync workflow runs it daily, and `npm run spec:update` by hand.
+// Downloads the published openapi.yaml into spec/openapi.yaml, verbatim.
+// `npm run spec:update` runs it, then regenerates the pages from it.
 import { writeFileSync } from 'node:fs';
 
 const url = process.env.JINSHUJU_OPENAPI_URL ?? 'https://jinshuju.net/api/v1/openapi.yaml';
