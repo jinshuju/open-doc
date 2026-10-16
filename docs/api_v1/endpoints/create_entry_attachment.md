@@ -46,12 +46,21 @@ field_api_code=field_1
 file=@/path/to/report.pdf
 ```
 
+<!-- openapi:params uploadEntryAttachment -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| FORM_TOKEN | 是 | String | 表单 Token |
-| field_api_code | 是 | String | 目标附件字段的 API Code，可通过 [get form](/api_v1/endpoints/get_form) 获取 |
-| dimension_api_code | 否 | String | 当 `field_api_code` 指向「表格字段」时必须，指定表格内的附件子字段的 API Code |
-| file | 是 | File | 要上传的文件 |
+| FORM_TOKEN | 是 | String | 表单 token（`GET /forms` 返回的 `token`），也接受 24 位十六进制的表单 id。 |
+| field_api_code | 是 | String | 附件字段的 api_code；表格字段中的附件列则传表格字段的 api_code |
+| dimension_api_code | 否 | String | 表格字段中附件列的 api_code，`field_api_code` 为表格字段时必填 |
+| attachment_token | 否 | String | 一次性上传令牌，以 `entry_att_tok_` 开头；传入时代替常规凭证 |
+| base64 | 是 | String | 文件内容的 Base64 字符串，可带 `data:<mime>;base64,` 前缀，解码后不超过 5 MB；亦可用 `data` 键 |
+| data | 否 | String | 与 `base64` 等价的别名 |
+| file_name | 否 | String | 文件名，缺省为 `attachment`；亦可用 `filename` 键 |
+| filename | 否 | String | 与 `file_name` 等价的别名 |
+| content_type | 否 | String | MIME 类型，缺省取 data URI 前缀，否则为 `application/octet-stream` |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -66,14 +75,18 @@ file=@/path/to/report.pdf
 }
 ```
 
+<!-- openapi:response uploadEntryAttachment -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| id | 是 | String | 附件的标识符，用于在新增/修改数据时填入附件字段 |
+| id | 是 | String | 附件 ID，创建 / 更新数据时填入附件字段 |
 | file_name | 是 | String | 文件名 |
-| content_type | 是 | String | 文件 MIME 类型 |
-| file_size | 是 | Number | 文件大小（字节） |
-| download_url | 是 | String | 附件下载地址 |
-| preview_url | 否 | String | 预览地址，仅当附件为图片时返回 |
+| content_type | 是 | String | MIME 类型 |
+| file_size | 是 | Integer | 文件字节数 |
+| download_url | 是 | String | 下载地址（长期有效） |
+| preview_url | 否 | String | 图片预览地址，仅图片附件返回 |
+
+<!-- /openapi -->
 
 ### 在新增数据时引用附件
 
@@ -84,6 +97,22 @@ file=@/path/to/report.pdf
     "field_1": ["5f3a1b2c4d5e6f7a8b9c0d1e", "5f3a1b2c4d5e6f7a8b9c0d2f"]
 }
 ```
+
+### 状态码
+
+<!-- openapi:status uploadEntryAttachment -->
+
+| 状态码 | 说明 |
+| ------ | ------ |
+| 201 | 上传成功 |
+| 400 | 请求参数或数据不合法 |
+| 401 | 未认证：令牌无效或已撤销 |
+| 402 | 当前套餐不包含 API v1 能力 |
+| 403 | 无权限：OAuth 令牌 scope 不足，或操作被业务规则拒绝 |
+| 404 | 资源不存在或当前身份不可访问（个人令牌只能访问自己创建或被共享的表单） |
+| 422 | 附件未通过校验（如超过字段的单文件大小上限）或存储失败 |
+
+<!-- /openapi -->
 
 ## 错误响应
 

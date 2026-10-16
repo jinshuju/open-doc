@@ -49,10 +49,14 @@ POST https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries/batch
 }
 ```
 
+<!-- openapi:params createEntriesBatch -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| FORM_TOKEN | 是 | String | 表单 Token |
-| entries | 是 | Array | 数据对象数组，最多 200 条；每个元素的格式同[新增单条数据](/api_v1/endpoints/create_form_entry) |
+| FORM_TOKEN | 是 | String | 表单 token（`GET /forms` 返回的 `token`），也接受 24 位十六进制的表单 id。 |
+| entries | 是 | Array(Object) | 写入数据时的字段值，键为字段 api_code 或 api_code_alias。未知键与不可写字段（签名、计算）被忽略。 选项类字段可传选项 api_code 或显示值，多级下拉与选项补充文本见下表；数字字段接受数字或数字字符串。<br />字段：写法<br />单行 / 多行文字、姓名、手机、邮箱、电话、网址、身份证：字符串<br />单选、下拉：`"选项 api_code"` 或 `"选项显示值"`；补充文本用 `"<api_code>_extended_text": {"<选项>": "补充"}`，「其他」文本用 `"<api_code>_other": "..."`<br />多选：数组，元素同上<br />图片单选 / 图片多选：选项 api_code（字符串 / 数组）<br />多级下拉：`{"level_1": "...", "level_2": "..."}`（api_code 或显示值）<br />数字、评分、NPS：数字<br />是否：布尔<br />日期：`"2012-12-25"` 或 `"2012-12-25 12:13:15"`（北京时间）<br />时间：`{"hour": "12", "minute": "15"}`<br />地址：`{"province","city","district","street"}`<br />地理位置：`{"longitude","latitude","address"}`<br />上传文件（可多个）：数组，元素可为：已上传附件的 id；本表单已有附件的下载地址（用于保留）；`{"base64": "...", "file_name": "a.png", "content_type": "image/png"}`（≤ 5MB，`base64` 也可为 data URI）；`{"attachment_token": "..."}`（预上传令牌）<br />商品：`[{"value": "商品 api_code", "number": 2, "specification": {"规格维度": "选项"}?}]`<br />矩阵填空 / 矩阵量表：`{"<题目 api_code>": {"<列 api_code>": 值}}`<br />矩阵单选：`{"<题目 api_code>": "选项 api_code"}`<br />表格：`[{"<列 api_code>": 值}, ...]`，附件列写法同上传文件<br />横向填空：`{"<子字段 api_code>": "..."}`<br />排序：有序数组 `["选项 api_code", ...]`<br />表单关联：关联数据的 token / id，或用关联键匹配的显示值（多个关联键传数组）<br />预约：`[{"api_code": "项目", "scheduled_at": "2021-04-26", "end_at"?: "...", "number": 1}]`<br />颜色标记：`"color_mark": "<颜色 api_code 或名称>"`<br />国际手机号：另传 `"<api_code>_country_id"` / `"<api_code>_country_code"`<br />数量：1 ~ 200 项 |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -74,12 +78,33 @@ POST https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries/batch
 }
 ```
 
+<!-- openapi:response createEntriesBatch -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| created_count | 是 | Number | 本次成功写入的数据条数 |
-| errors | 是 | Array | 校验失败的数据列表，元素为 `{ index, reason }` |
-| errors[].index | 是 | Number | 出错数据在请求 `entries` 数组中的下标（从 0 开始） |
-| errors[].reason | 是 | String | 该条数据的失败原因 |
+| created_count | 是 | Integer |  |
+| errors | 是 | Array(Object) |  |
+| errors[].index | 是 | Integer | 请求数组中的下标 |
+| errors[].reason | 是 | String |  |
+
+<!-- /openapi -->
+
+### 状态码
+
+<!-- openapi:status createEntriesBatch -->
+
+| 状态码 | 说明 |
+| ------ | ------ |
+| 201 | 至少一条创建成功 |
+| 400 | 请求参数或数据不合法 |
+| 401 | 未认证：令牌无效或已撤销 |
+| 402 | 当前套餐不包含 API v1 能力 |
+| 403 | 表单数据量已达上限，或 OAuth scope 不足 |
+| 404 | 资源不存在或当前身份不可访问（个人令牌只能访问自己创建或被共享的表单） |
+| 422 | 全部条目创建失败 |
+| 429 | 超过速率限制 |
+
+<!-- /openapi -->
 
 ## 错误响应
 

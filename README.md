@@ -50,7 +50,22 @@ docs/
 ├── embedded/             # 表单嵌入文档
 ├── api_code_alias/       # API CODE 重命名
 └── best_practice.md      # 场景案例
+spec/
+├── openapi.yaml          # 线上 openapi.yaml 的原样副本
+└── openapi.zh-Hans.yaml  # 接口描述的中文（以英文原文为键）
 ```
+
+## API 文档与 openapi.yaml
+
+API v1 接口页里的参数表、响应字段表和状态码表由 [openapi.yaml](https://jinshuju.net/api/v1/openapi.yaml) 生成，夹在 `<!-- openapi:… -->` 注释之间，不要手改；简介、示例和代码示例仍是手写的。
+
+```bash
+npm run generate        # 按 spec/ 重新生成接口页里的表格
+npm run generate:check  # 只检查，不改文件（CI 会跑）
+npm run spec:update     # 拉取最新的 openapi.yaml 后再生成
+```
+
+每天会有工作流拉取线上的 openapi.yaml，有变化就开 PR。新出现的英文描述需要在 `spec/openapi.zh-Hans.yaml` 里补上中文，补齐之前检查不会通过。详见 [CONTRIBUTING.md](CONTRIBUTING.md#tables-generated-from-openapiyaml)。
 
 ## 维护状态
 

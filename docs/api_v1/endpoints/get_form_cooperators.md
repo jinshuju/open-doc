@@ -39,9 +39,13 @@ sidebar_label: 获取表单协作者
 GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/cooperators
 ```
 
+<!-- openapi:params listFormCooperators -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| FORM_TOKEN | 是 | String | 表单 Token（URL 路径参数） |
+| FORM_TOKEN | 是 | String | 表单 token（`GET /forms` 返回的 `token`），也接受 24 位十六进制的表单 id。 |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -63,22 +67,31 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/cooperators
 }
 ```
 
+<!-- openapi:response listFormCooperators -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| count | 是 | Number | 本次返回的协作者数量 |
-| data | 是 | Array | 协作者数组 |
+| count | 是 | Integer |  |
+| data | 是 | Array(Object) |  |
 | data[].user_id | 是 | String | 用户 id |
-| data[].name | 是 | String | 用户展示名 |
-| data[].role | 否 | String | 该用户在此表单上的角色名称，例如「表单管理员」「数据维护者」「数据查看者」。角色记录异常时可能为 `null` |
+| data[].name | 是 | String | 用户显示名 |
+| data[].role | 是 | String / null | 角色名称 |
+
+<!-- /openapi -->
 
 ### 状态码
 
+<!-- openapi:status listFormCooperators -->
+
 | 状态码 | 说明 |
 | ------ | ------ |
-| 200 | 获取成功 |
-| 401 | 未认证 |
-| 402 | 当前套餐不支持 V1 API |
-| 404 | 表单不存在或无权访问 |
+| 200 | 协作者列表 |
+| 401 | 未认证：令牌无效或已撤销 |
+| 402 | 当前套餐不包含 API v1 能力 |
+| 403 | 无权限：OAuth 令牌 scope 不足，或操作被业务规则拒绝 |
+| 404 | 资源不存在或当前身份不可访问（个人令牌只能访问自己创建或被共享的表单） |
+
+<!-- /openapi -->
 
 ## 示例代码
 

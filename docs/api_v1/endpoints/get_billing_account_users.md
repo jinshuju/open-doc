@@ -39,9 +39,13 @@ GET https://jinshuju.net/api/v1/billing_account/users
 GET https://jinshuju.net/api/v1/billing_account/users?limit=20
 ```
 
+<!-- openapi:params listBillingAccountUsers -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| limit | 否 | Number | 返回条数上限，默认 50，最多 100 |
+| limit | 否 | Integer | 返回数量上限，缺省 50，最大 100<br />默认值：`50`；取值范围：1 ~ 100 |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -72,26 +76,35 @@ GET https://jinshuju.net/api/v1/billing_account/users?limit=20
 }
 ```
 
+<!-- openapi:response listBillingAccountUsers -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| total | 是 | Number | 当前账户内成员总数 |
-| count | 是 | Number | 本次返回的成员数量 |
-| data | 是 | Array | 成员信息数组 |
-| data[].id | 是 | String | 成员（用户）ID |
-| data[].name | 是 | String | 成员显示名 |
-| data[].email | 是 | String | 邮箱 |
-| data[].mobile | 否 | String | 手机号（可能为空） |
-| data[].role | 是 | String | 角色（`owner` / `admin` / `worker` / `outworker`） |
-| data[].status | 是 | String | 状态（`active` / `disabled`） |
-| data[].created_at | 是 | DateTime | 成员加入时间（UTC） |
+| total | 是 | Integer | 成员总数 |
+| count | 是 | Integer | 本次返回的数量 |
+| data | 是 | Array(Object) |  |
+| data[].id | 是 | String | 用户 ID |
+| data[].name | 是 | String / null | 显示名称 |
+| data[].email | 是 | String / null | 邮箱 |
+| data[].mobile | 是 | String / null | 手机号 |
+| data[].role | 是 | String | 在账号中的角色<br />可选值：`owner`、`admin`、`worker`、`outworker` |
+| data[].status | 是 | String | 成员状态<br />可选值：`active`、`disabled` |
+| data[].created_at | 是 | DateTime | 加入时间（UTC） |
+
+<!-- /openapi -->
 
 ### 状态码
 
+<!-- openapi:status listBillingAccountUsers -->
+
 | 状态码 | 说明 |
 | ------ | ------ |
-| 200 | 成功 |
-| 401 | 未认证 |
-| 402 | 当前套餐不支持 V1 API |
+| 200 | 成员列表 |
+| 401 | 未认证：令牌无效或已撤销 |
+| 402 | 当前套餐不包含 API v1 能力 |
+| 403 | 无权限：OAuth 令牌 scope 不足，或操作被业务规则拒绝 |
+
+<!-- /openapi -->
 
 ## 示例代码
 

@@ -37,10 +37,14 @@ sidebar_label: 删除单条数据
 DELETE https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries/SERIAL_NUMBER
 ```
 
+<!-- openapi:params deleteEntry -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| FORM_TOKEN | 是 | String | 表单Token |
-| SERIAL_NUMBER | 是 | Number | 数据序号 |
+| FORM_TOKEN | 是 | String | 表单 token（`GET /forms` 返回的 `token`），也接受 24 位十六进制的表单 id。 |
+| SERIAL_NUMBER | 是 | Integer | 数据序号 |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -50,9 +54,29 @@ DELETE https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries/SERIAL_NUMBER
 }
 ```
 
+<!-- openapi:response deleteEntry -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| serial_number | 是 | Number | 数据序号（标识符） |
+| serial_number | 是 | Integer |  |
+
+<!-- /openapi -->
+
+### 状态码
+
+<!-- openapi:status deleteEntry -->
+
+| 状态码 | 说明 |
+| ------ | ------ |
+| 200 | 删除成功 |
+| 400 | 请求参数或数据不合法 |
+| 401 | 未认证：令牌无效或已撤销 |
+| 402 | 当前套餐不包含 API v1 能力 |
+| 403 | 无权限：OAuth 令牌 scope 不足，或操作被业务规则拒绝 |
+| 404 | 资源不存在或当前身份不可访问（个人令牌只能访问自己创建或被共享的表单） |
+| 429 | 超过速率限制 |
+
+<!-- /openapi -->
 
 ## 示例代码
 

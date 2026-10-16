@@ -38,7 +38,11 @@ sidebar_label: 获取当前企业账户信息
 GET https://jinshuju.net/api/v1/billing_account
 ```
 
-无参数。
+<!-- openapi:params getBillingAccount -->
+
+本接口没有参数。
+
+<!-- /openapi -->
 
 ### Response
 
@@ -91,38 +95,62 @@ GET https://jinshuju.net/api/v1/billing_account
 }
 ```
 
+<!-- openapi:response getBillingAccount -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| id | 是 | String | 企业账户 ID |
-| name | 是 | String | 企业账户名称 |
-| subdomain | 否 | String | 企业子域名（未配置时为 `null`） |
-| users_count | 是 | Number | 当前 active 成员数 |
-| plan | 是 | Object | 套餐信息（见下） |
-| plan.code | 是 | String | 套餐代码（如 `e10` / `e20` / `e30` / `pro2` / `free`） |
-| plan.name | 是 | String | 套餐展示名（中文） |
-| plan.end_date | 是 | String | 套餐到期日期（`YYYY-MM-DD`） |
+| id | 是 | String | 账号 ID |
+| name | 是 | String / null | 账号名称 |
+| subdomain | 是 | String / null | 自定义子域名 |
+| users_count | 是 | Integer | 活跃成员数 |
+| plan | 是 | Object |  |
+| plan.code | 是 | String | 套餐代码（如 free、pro2、ent2、e10、e20、e30、en_cor） |
+| plan.name | 是 | String | 套餐名称 |
+| plan.end_date | 是 | String | 套餐到期日（YYYY-MM-DD），无到期日时为空字符串 |
 | plan.org_plan | 是 | Boolean | 是否企业套餐 |
-| plan.expired | 是 | Boolean | 企业套餐是否已过期 |
-| usage | 否 | Object \| null | 本月度用量信息；账户未生成本月用量记录时为 `null` |
-| usage.next_reset_date | 是 | String | 下次重置日（`YYYY-MM-DD`） |
-| usage.sms / active_mail / entry_quota / storage_quota | 是 | Object | 各项额度数据（见下） |
-| usage.\{vas\}.total_quota | 是 | Number | 本计费周期内的总额度 |
-| usage.\{vas\}.total_balance | 是 | Number | 当前剩余总额度 |
-| usage.\{vas\}.month_balance | 是 | Number | 当前剩余月度额度 |
-| usage.\{vas\}.consumed_quota | 是 | Number | 已消耗额度 |
-| feature_trial | 是 | Object | 特性试用状态 |
-| feature_trial.in_use | 是 | Boolean | 是否在试用中 |
-| feature_trial.expired | 是 | Boolean | 试用是否已过期 |
-| feature_trial.label | 否 | String | 当前生效套餐展示名 |
-| feature_trial.end_date | 否 | String | 试用到期日（无试用时为空字符串） |
+| plan.expired | 是 | Boolean | 企业套餐是否已到期 |
+| usage | 是 | Object / null | 当月用量；键为增值服务代码（sms、active_mail、entry_quota、storage_quota、ai_points、audio_quota、entry_transaction_quota、merchant_entry_transaction_quota） |
+| usage.next_reset_date | 是 | String | 下次用量重置日（YYYY-MM-DD） |
+| usage.\* | 否 | Object | 单项增值服务的配额与用量；配额无限时只有 unit、unlimited、consumed_quota |
+| usage.\*.unit | 是 | String | 计量单位<br />可选值：`item`、`mb`、`second`、`cent` |
+| usage.\*.unlimited | 否 | Boolean | 配额无限时为 true |
+| usage.\*.total_quota | 否 | Integer | 本月总配额（套餐赠送 + 已购） |
+| usage.\*.total_balance | 否 | Integer | 剩余总额度 |
+| usage.\*.month_balance | 否 | Integer | 本月套餐赠送额度的剩余 |
+| usage.\*.consumed_quota | 是 | Integer | 本月已消耗 |
+| feature_trial | 是 | Object |  |
+| feature_trial.in_use | 是 | Boolean | 是否正在功能试用中 |
+| feature_trial.expired | 是 | Boolean | 功能试用是否已结束 |
+| feature_trial.label | 是 | String / null | 试用套餐名称 |
+| feature_trial.end_date | 是 | String | 试用截止日（YYYY-MM-DD），未试用过时为空字符串 |
+| merchant_accounts | 是 | Array(Object) | 已绑定的收款商户 |
+| merchant_accounts[].id | 是 | String |  |
+| merchant_accounts[].name | 是 | String / null |  |
+| merchant_accounts[].merchant_no | 是 | String / null | 商户号 |
+| merchant_accounts[].channels | 是 | Array(String) | 已开通的支付渠道（wxpay / alipay） |
+| wxpay_accounts | 是 | Array(Object) | 已绑定的微信支付账户 |
+| wxpay_accounts[].id | 是 | String |  |
+| wxpay_accounts[].mch_id | 是 | String / null |  |
+| wxpay_accounts[].mch_name | 是 | String / null |  |
+| alipay_accounts | 是 | Array(Object) | 已绑定的支付宝账户 |
+| alipay_accounts[].id | 是 | String |  |
+| alipay_accounts[].email | 是 | String / null |  |
+| alipay_accounts[].account_type | 是 | String / null | 可选值：`create_direct_pay_by_user`、`create_partner_trade_by_buyer`、`trade_create_by_buyer`、`fast_instant_trade_pay` |
+
+<!-- /openapi -->
 
 ### 状态码
 
+<!-- openapi:status getBillingAccount -->
+
 | 状态码 | 说明 |
 | ------ | ------ |
-| 200 | 成功 |
-| 401 | 未认证 |
-| 402 | 当前套餐不支持 V1 API |
+| 200 | 账号信息 |
+| 401 | 未认证：令牌无效或已撤销 |
+| 402 | 当前套餐不包含 API v1 能力 |
+| 403 | 无权限：OAuth 令牌 scope 不足，或操作被业务规则拒绝 |
+
+<!-- /openapi -->
 
 ## 示例代码
 

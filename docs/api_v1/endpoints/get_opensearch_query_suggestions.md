@@ -39,9 +39,13 @@ sidebar_label: 获取对外查询可用字段
 GET https://jinshuju.net/api/v1/opensearch/query_suggestions?form_token=FORM_TOKEN
 ```
 
+<!-- openapi:params listOpensearchQuerySuggestions -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| form_token | 是 | String | 表单 Token（Query 参数）。注意这里传的是**表单** token，不是对外查询 token |
+| form_token | 是 | String | 表单 token |
+
+<!-- /openapi -->
 
 ### Response
 
@@ -73,30 +77,43 @@ GET https://jinshuju.net/api/v1/opensearch/query_suggestions?form_token=FORM_TOK
 }
 ```
 
+<!-- openapi:response listOpensearchQuerySuggestions -->
+
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
-| form_token | 是 | String | 表单 Token |
-| search_fields | 是 | Array | 可用作查询条件的字段，即 `search_field_rules[].search_field_settings[].field_api_code` 的合法取值 |
-| display_fields | 是 | Array | 可用于展示的字段，即 `display_field_rules[].field_api_code` 的合法取值 |
-| *[].api_code | 是 | String | 字段 `api_code` |
-| *[].label | 是 | String | 字段标题 |
-| *[].type | 是 | String | 字段类型名 |
-| *[].privacy_protectable | 是 | Bool | 该字段的值能否脱敏；只有为 `true` 时 `display_field_rules[].protected` 才生效 |
-| *[].for_associated | 是 | Bool | 是否来自关联表单的展开字段 |
-| display_fields[].editable | 是 | Bool | 该字段能否允许访问者在结果页编辑；只有为 `true` 时 `display_field_rules[].editable` 才生效 |
-| display_fields[].scorable | 是 | Bool | 是否为考试得分类字段 |
-| recommend_search_fields | 是 | Array(String) | 推荐作为查询条件的 `api_code`，可直接使用。为空数组说明该表单没有手机号字段可推荐，此时应由使用者指定查询字段 |
-| recommend_display_fields | 是 | Array(String) | 编辑器的展示字段预选集合，**不要不加筛选地直接使用** |
+| form_token | 是 | String | 表单 token |
+| search_fields | 是 | Array(Object) | 可作为查询条件的字段 |
+| search_fields[].api_code | 是 | String | 字段 api_code |
+| search_fields[].label | 是 | String | 字段标题 |
+| search_fields[].type | 是 | String | 字段类型名，如 TextField、MobileField |
+| search_fields[].privacy_protectable | 是 | Boolean | 是否支持隐私保护 |
+| search_fields[].for_associated | 是 | Boolean / null | 是否为关联表单展开出来的字段，非关联字段为 null |
+| display_fields | 是 | Array(Object) | 可作为展示字段的字段 |
+| display_fields[].api_code | 是 | String | 字段 api_code |
+| display_fields[].label | 是 | String | 字段标题 |
+| display_fields[].type | 是 | String | 字段类型名，如 TextField、MobileField |
+| display_fields[].privacy_protectable | 是 | Boolean | 是否支持隐私保护 |
+| display_fields[].for_associated | 是 | Boolean / null | 是否为关联表单展开出来的字段，非关联字段为 null |
+| display_fields[].editable | 是 | Boolean | 是否可设置为查询者可编辑 |
+| display_fields[].scorable | 是 | Boolean | 是否为可计分字段 |
+| recommend_search_fields | 是 | Array(String) | 推荐的查询字段 api_code（姓名 + 手机，无手机字段时为空） |
+| recommend_display_fields | 是 | Array(String) | 推荐的展示字段 api_code（排除隐私字段、仅展示字段与微信字段） |
+
+<!-- /openapi -->
 
 ### 状态码
 
+<!-- openapi:status listOpensearchQuerySuggestions -->
+
 | 状态码 | 说明 |
 | ------ | ------ |
-| 200 | 获取成功 |
-| 401 | 未认证 |
-| 402 | 当前套餐不支持 V1 API |
-| 403 | 能访问该表单但不是表单管理员 |
-| 404 | 表单不存在或无权访问 |
+| 200 | 字段建议 |
+| 401 | 未认证：令牌无效或已撤销 |
+| 402 | 当前套餐不包含 API v1 能力 |
+| 403 | 无权限：OAuth 令牌 scope 不足，或操作被业务规则拒绝 |
+| 404 | 资源不存在或当前身份不可访问（个人令牌只能访问自己创建或被共享的表单） |
+
+<!-- /openapi -->
 
 ## 示例代码
 
