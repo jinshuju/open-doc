@@ -165,7 +165,7 @@ POST https://jinshuju.net/api/v1/forms
 | `PageBreak` | disable_previous_page | Bool | 禁止返回上一页 |
 | `PageBreak` | previous_page_text / next_page_text | String | 自定义按钮文案 |
 
-> 完整属性以及最新约束以服务端为准；常见用法可参考 [MCP `describe_field_type`](/mcp/) 工具的输出。
+> 完整属性以及最新约束以 [openapi.yaml](https://jinshuju.net/api/v1/openapi.yaml) 为准：每种字段类型对应 `<字段类型>Input` schema（如 `TextFieldInput`、`CascadeDropDownInput`）。
 
 ### Response
 
