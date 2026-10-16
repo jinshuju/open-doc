@@ -66,25 +66,14 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN/views/VIEW_TOKEN
 | kanban_card_title_api_code | 否 | String | 看板卡片标题字段的 `api_code` |
 | kanban_group_order | 否 | Array(String) | 看板分组的显示顺序，元素为分组选项的 `api_code`，不可重复 |
 | kanban_hidden_groups | 否 | Array(String) | 隐藏的看板分组，取值同 `kanban_group_order`；空数组表示全部显示 |
-| sort | 否 | Array(Object) | 排序规则数组。传空数组会清空排序规则 |
-| sort[].api_code | 是 | String | 排序字段的 `api_code`，可包含系统字段如 `serial_number` |
-| sort[].order | 否 | String | 排序方向：`asc` / `desc` |
+| sort | 否 | Array([FormViewSortRule](#formviewsortrule)) | 排序规则数组。传空数组会清空排序规则 |
 | sorted_columns | 否 | Array(Object) | 列的显示顺序，按数组顺序排列，整体替换 |
 | sorted_columns[].api_code | 是 | String | 字段的 `api_code` |
-| filter | 否 | Array(Object) | 视图筛选条件数组。传空数组会清空筛选条件 |
-| filter[].field | 是 | String | 筛选字段的 `api_code` |
-| filter[].operator | 是 | String | 筛选操作符 |
-| filter[].value | 否 | Any | 筛选值；`null` / `not_null` 不需要传 |
+| filter | 否 | Array([FormViewFilterCondition](#formviewfiltercondition)) | 视图筛选条件数组。传空数组会清空筛选条件 |
 | title | 否 | String | 填写页标题，不能为空，最长 120 个字符。仅表单视图可用 |
 | description | 否 | String / null | 填写页描述。仅表单视图可用 |
 | published | 否 | Boolean | 是否发布填写页。仅表单视图可用 |
-| field_overrides | 否 | Array(Object) | 填写项设置，整体替换。仅表单视图可用 |
-| field_overrides[].field_api_code | 是 | String | 列的 `api_code`；须可作为填写项，不可重复 |
-| field_overrides[].label | 否 | String / null | 填写页上的标题；为空时沿用列标题 |
-| field_overrides[].notes | 否 | String / null | 填写页上的说明；为空时沿用列说明 |
-| field_overrides[].private | 否 | Boolean / null | 为 `true` 时不在填写页显示；不传时沿用列自身设置 |
-| field_overrides[].position | 否 | Integer / null | 在填写页中的位置；不传时按数组顺序 |
-| field_overrides[].validations | 否 | Array(String) | 填写项校验，目前 `presence` 表示必填；须为该列类型支持的校验 |
+| field_overrides | 否 | Array([FormViewFieldOverrideInput](#formviewfieldoverrideinput)) | 填写项设置，整体替换。仅表单视图可用 |
 | cid | 否 | String | 客户端标识，随实时变更广播透传 |
 
 <!-- /openapi -->
@@ -141,21 +130,14 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN/views/VIEW_TOKEN
 | sort | 是 | Array(Object) | 排序规则数组 |
 | sort[].api_code | 是 | String | 排序字段的 `api_code`，可包含系统字段如 `serial_number` |
 | sort[].order | 是 | String | 排序方向：`asc` / `desc` |
-| filter | 是 | Array(Object) | 视图筛选条件数组。无筛选条件时返回空数组 |
-| filter[].field | 是 | String | 筛选字段的 `api_code` |
-| filter[].operator | 是 | String | 筛选操作符 |
-| filter[].value | 否 | Any | 筛选值；`null` / `not_null` 不返回该字段 |
+| filter | 是 | Array([FormViewFilterCondition](#formviewfiltercondition)) | 视图筛选条件数组。无筛选条件时返回空数组 |
 | created_at | 是 | DateTime | 视图创建时间 |
 | updated_at | 是 | DateTime | 视图最后更新时间 |
 | title | 否 | String / null | 填写页标题（仅表单视图返回） |
 | description | 否 | String / null | 填写页描述（仅表单视图返回） |
 | published | 否 | Boolean | 是否已发布，未发布时填写链接不可用（仅表单视图返回） |
 | fill_url | 否 | String | 对外填写链接（仅表单视图返回） |
-| fill_items | 否 | Array(Object) | 填写页上勾选的填写项，按填写页顺序（仅表单视图返回） |
-| fill_items[].api_code | 是 | String | 列的 `api_code` |
-| fill_items[].label | 是 | String / null | 填写页上显示的标题，未单独设置时为列标题 |
-| fill_items[].notes | 是 | String / null | 填写页上显示的说明，未单独设置时为列说明 |
-| fill_items[].required | 是 | Boolean | 是否必填 |
+| fill_items | 否 | Array([FormViewFillItem](#formviewfillitem)) | 填写页上勾选的填写项，按填写页顺序（仅表单视图返回） |
 
 <!-- /openapi -->
 
@@ -171,6 +153,47 @@ PATCH https://jinshuju.net/api/v1/forms/FORM_TOKEN/views/VIEW_TOKEN
 | 403 | 无权限（如 OAuth scope 不足、非创建者切换可见性、无权修改表单视图） |
 | 404 | 表单或视图不存在，或无权访问 |
 | 422 | 参数校验失败、筛选条件不合法、系统预设视图类型不允许修改 |
+
+<!-- /openapi -->
+
+## 数据类型
+
+<!-- openapi:types -->
+
+### FormViewSortRule
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| api_code | 是 | String | 排序字段的 `api_code`，可包含系统字段如 `serial_number` |
+| order | 否 | String | 排序方向：`asc` / `desc` |
+
+### FormViewFilterCondition
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| field | 是 | String | 筛选字段的 `api_code` |
+| operator | 是 | String | 筛选操作符 |
+| value | 否 | Any | 筛选值；运算符为 `null` / `not_null` 时没有该字段 |
+
+### FormViewFieldOverrideInput
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| field_api_code | 是 | String | 列的 `api_code`；须可作为填写项，不可重复 |
+| label | 否 | String / null | 填写页上的标题；为空时沿用列标题 |
+| notes | 否 | String / null | 填写页上的说明；为空时沿用列说明 |
+| private | 否 | Boolean / null | 为 `true` 时不在填写页显示；不传时沿用列自身设置 |
+| position | 否 | Integer / null | 在填写页中的位置；不传时按数组顺序 |
+| validations | 否 | Array(String) | 填写项校验，目前 `presence` 表示必填；须为该列类型支持的校验 |
+
+### FormViewFillItem
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| api_code | 是 | String | 列的 `api_code` |
+| label | 是 | String / null | 填写页上显示的标题，未单独设置时为列标题 |
+| notes | 是 | String / null | 填写页上显示的说明，未单独设置时为列说明 |
+| required | 是 | Boolean | 是否必填 |
 
 <!-- /openapi -->
 

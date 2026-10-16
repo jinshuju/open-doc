@@ -84,6 +84,7 @@ with a pair of comments that name the operation (its `operationId` in the spec):
 <!-- openapi:params getFormView -->     path, query and body parameters
 <!-- openapi:response getFormView -->   fields of the 2xx response body
 <!-- openapi:status getFormView -->     status codes
+<!-- openapi:types -->                  the data types the page's tables refer to
 | … |
 <!-- /openapi -->
 ```
@@ -96,9 +97,22 @@ to the next. A row the spec adds comes in with an empty 说明, and the run fail
 writes it; the report quotes the spec's description to write it from. A row the spec drops
 goes, with its 说明.
 
-Fields whose schema has a page of its own (field definitions, form settings) are not spelled
-out property by property; only the sub-rows a page lists under them stay, while the spec
-still has them.
+A field whose schema is a named object in the spec is not spelled out as `data[].name` rows.
+Its 类型 names the type, `Array(FormSummary)`, linked to the page's `## 数据类型` section,
+where the `openapi:types` region gives FormSummary a table of its own, then each type that
+table refers to, and so on. The names are the ones openapi.yaml uses (its
+`components.schemas`), so a reader can look a type up there. A page whose tables refer to a
+type needs that region, and the run fails without it. A type reads the same on every page
+that has it: a row still without a 说明 takes the one another page wrote, so writing it once
+is enough, and the run fails when two pages give a row different 说明. A note that only one
+endpoint needs goes in that page's prose instead.
+
+An object the spec gives no name stays nested in the table that has it (`paid.amount`,
+`conditions[].trigger`); naming it in openapi.yaml turns it into a data type.
+
+Fields whose schema has a page of its own (field definitions, form settings) link to that
+page and are not spelled out property by property; only the sub-rows a page lists under them
+stay, while the spec still has them.
 
 Everything outside the markers is the page's own too: the introduction, the plan table,
 notes, the JSON examples and the code samples. Which endpoints have a page at all is decided

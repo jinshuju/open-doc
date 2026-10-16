@@ -90,21 +90,14 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/views/VIEW_TOKEN
 | sort | 是 | Array(Object) | 排序规则数组 |
 | sort[].api_code | 是 | String | 排序字段的 `api_code`，可包含系统字段如 `serial_number` |
 | sort[].order | 是 | String | 排序方向：`asc` / `desc` |
-| filter | 是 | Array(Object) | 视图筛选条件数组。无筛选条件时返回空数组 |
-| filter[].field | 是 | String | 筛选字段的 `api_code` |
-| filter[].operator | 是 | String | 筛选操作符 |
-| filter[].value | 否 | Any | 筛选值；`null` / `not_null` 不返回该字段 |
+| filter | 是 | Array([FormViewFilterCondition](#formviewfiltercondition)) | 视图筛选条件数组。无筛选条件时返回空数组 |
 | created_at | 是 | DateTime | 视图创建时间 |
 | updated_at | 是 | DateTime | 视图最后更新时间 |
 | title | 否 | String / null | 填写页标题（仅表单视图返回） |
 | description | 否 | String / null | 填写页描述（仅表单视图返回） |
 | published | 否 | Boolean | 是否已发布，未发布时填写链接不可用（仅表单视图返回） |
 | fill_url | 否 | String | 对外填写链接（仅表单视图返回） |
-| fill_items | 否 | Array(Object) | 填写页上勾选的填写项，按填写页顺序（仅表单视图返回） |
-| fill_items[].api_code | 是 | String | 列的 `api_code` |
-| fill_items[].label | 是 | String / null | 填写页上显示的标题，未单独设置时为列标题 |
-| fill_items[].notes | 是 | String / null | 填写页上显示的说明，未单独设置时为列说明 |
-| fill_items[].required | 是 | Boolean | 是否必填 |
+| fill_items | 否 | Array([FormViewFillItem](#formviewfillitem)) | 填写页上勾选的填写项，按填写页顺序（仅表单视图返回） |
 
 <!-- /openapi -->
 
@@ -121,6 +114,29 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/views/VIEW_TOKEN
 | 402 | 当前套餐不支持 V1 API |
 | 403 | 无权限（如 OAuth scope 不足） |
 | 404 | 表单或视图不存在，或无权访问 |
+
+<!-- /openapi -->
+
+## 数据类型
+
+<!-- openapi:types -->
+
+### FormViewFilterCondition
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| field | 是 | String | 筛选字段的 `api_code` |
+| operator | 是 | String | 筛选操作符 |
+| value | 否 | Any | 筛选值；运算符为 `null` / `not_null` 时没有该字段 |
+
+### FormViewFillItem
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| api_code | 是 | String | 列的 `api_code` |
+| label | 是 | String / null | 填写页上显示的标题，未单独设置时为列标题 |
+| notes | 是 | String / null | 填写页上显示的说明，未单独设置时为列说明 |
+| required | 是 | Boolean | 是否必填 |
 
 <!-- /openapi -->
 

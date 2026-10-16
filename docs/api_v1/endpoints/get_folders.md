@@ -67,11 +67,7 @@ GET https://jinshuju.net/api/v1/folders?limit=20
 | ------ | ------ | ------ | ------ |
 | total | 是 | Integer | 当前账号可管理的文件夹总数 |
 | count | 是 | Integer | 本次请求返回的文件夹数量 |
-| data | 是 | Array(Object) | 文件夹信息数组 |
-| data[].token | 是 | String | 文件夹 token |
-| data[].name | 是 | String | 文件夹名称 |
-| data[].kind | 是 | String / null | 文件夹类型：`form` / `table` / `quickpay`；为 `null` 时视为 `form` |
-| data[].created_at | 是 | DateTime | 文件夹创建时间 |
+| data | 是 | Array([Folder](#folder)) | 文件夹信息数组 |
 
 <!-- /openapi -->
 
@@ -85,6 +81,21 @@ GET https://jinshuju.net/api/v1/folders?limit=20
 | 401 | 未认证 |
 | 402 | 当前套餐不支持 V1 API |
 | 403 | 无权限（如 OAuth scope 不足） |
+
+<!-- /openapi -->
+
+## 数据类型
+
+<!-- openapi:types -->
+
+### Folder
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| token | 是 | String | 文件夹 token |
+| name | 是 | String | 文件夹名称 |
+| kind | 是 | String / null | 文件夹类型：`form` / `table` / `quickpay`；为 `null` 时视为 `form` |
+| created_at | 是 | DateTime | 文件夹创建时间 |
 
 <!-- /openapi -->
 

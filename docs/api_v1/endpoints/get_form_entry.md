@@ -72,23 +72,7 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries/SERIAL_NUMBER
 | ------ | ------ | ------ | ------ |
 | form | 是 | String | 表单Token |
 | form_name | 是 | String | 表单标题 |
-| entry | 是 | Object | 本次请求获取的数据 |
-| entry.token | 是 | String | 数据唯一标识 |
-| entry.serial_number | 是 | Integer | 数据序号（标识符） |
-| entry.created_at | 否 | DateTime | 数据提交时间 |
-| entry.updated_at | 否 | DateTime | 数据最后一次变更时间 |
-| entry.creator_name | 否 | String | 本条数据的填写者 |
-| entry.color_mark | 否 | String | 颜色标记 |
-| entry.info_filling_duration | 否 | Number | 填写时长（秒）；Excel 导入、API 提交的数据为空 |
-| entry.info_platform | 否 | String | 填写设备 |
-| entry.info_os | 否 | String | 操作系统 |
-| entry.info_browser | 否 | String | 浏览器 |
-| entry.info_region | 否 | Object | 填写地区 |
-| entry.info_region.country | 否 | String | 国家 |
-| entry.info_region.province | 否 | String | 省份 |
-| entry.info_region.city | 否 | String | 城市 |
-| entry.info_remote_ip | 否 | String | 填写者 IP 地址 |
-| entry.\* | 否 | Any | 对应字段的值 |
+| entry | 是 | [EntryData](#entrydata) | 本次请求获取的数据 |
 | url | 否 | String | 在金数据中查看该条数据的链接 |
 
 <!-- /openapi -->
@@ -110,6 +94,33 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/entries/SERIAL_NUMBER
 | 403 | 无权限（如 OAuth scope 不足） |
 | 404 | 表单或数据不存在，或无权访问 |
 | 429 | 超过请求速率限制 |
+
+<!-- /openapi -->
+
+## 数据类型
+
+<!-- openapi:types -->
+
+### EntryData
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| token | 是 | String | 数据唯一标识 |
+| serial_number | 是 | Integer | 数据序号（标识符） |
+| created_at | 否 | DateTime | 数据提交时间 |
+| updated_at | 否 | DateTime | 数据最后一次变更时间 |
+| creator_name | 否 | String | 本条数据的填写者（仅对系统内录入数据有效） |
+| color_mark | 否 | String | 颜色标记 |
+| info_filling_duration | 否 | Number | 填写时长（秒）；Excel 导入、API 提交的数据为空 |
+| info_platform | 否 | String | 填写设备 |
+| info_os | 否 | String | 操作系统 |
+| info_browser | 否 | String | 浏览器 |
+| info_region | 否 | Object | 填写地区 |
+| info_region.country | 否 | String | 国家 |
+| info_region.province | 否 | String | 省份 |
+| info_region.city | 否 | String | 城市 |
+| info_remote_ip | 否 | String | 填写者 IP 地址 |
+| \* | 否 | Any | 对应字段的值，键为字段 `api_code` |
 
 <!-- /openapi -->
 

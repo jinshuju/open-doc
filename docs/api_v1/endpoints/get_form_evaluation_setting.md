@@ -86,17 +86,7 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/evaluation_setting
 | show_indicator_comments | 否 | Boolean | 报告中是否显示各维度的结果分析与建议 |
 | show_comments | 否 | Boolean | 是否开启测评评语 |
 | need_attention | 否 | String | 测评须知内容 |
-| evaluation_comments | 否 | Array(Object) | 总分区间评语；未开启时不返回该字段。按条件编写的评语以 `id` + `conditions` 代替区间 |
-| evaluation_comments[].start_point | 否 | Number | 分数区间左端（含） |
-| evaluation_comments[].end_point | 否 | Number | 分数区间右端（含） |
-| evaluation_comments[].comment | 否 | String | 评语内容（富文本） |
-| evaluation_comments[].retry | 否 | Boolean | 是否允许再答一次 |
-| evaluation_comments[].id | 否 | String | 按条件编写的评语 id，更新时须原样传回 |
-| evaluation_comments[].conditions | 否 | Array(Object) | 按条件编写的评语的判定条件 |
-| evaluation_comments[].conditions[].trigger | 否 | String | 条件字段的 `api_code` |
-| evaluation_comments[].conditions[].operator | 否 | String | 比较运算符 |
-| evaluation_comments[].conditions[].value | 否 | Any | 条件值 |
-| evaluation_comments[].conditions[].group_index | 否 | Integer | 条件分组序号 |
+| evaluation_comments | 否 | Array([EvaluationComment](#evaluationcomment)) | 总分区间评语；未开启时不返回该字段。按条件编写的评语以 `id` + `conditions` 代替区间 |
 | indicator_setting | 否 | Object | 维度设置；未配置任何维度时不返回该字段 |
 | indicator_setting.indicators_scoring_mode | 否 | String | 维度得分算法：`summation` = 求和；`average` = 平均；`customization` = 自定义公式 |
 | indicator_setting.indicators | 否 | Array(Object) | 维度列表 |
@@ -104,11 +94,7 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/evaluation_setting
 | indicator_setting.indicators[].name | 否 | String | 维度名称 |
 | indicator_setting.indicators[].field_api_codes | 否 | Array(String) | 该维度绑定的计分题 `api_code` 列表 |
 | indicator_setting.indicators[].standard_score | 否 | Number | 维度标准分（雷达图参考值） |
-| indicator_setting.indicators[].indicator_comments | 否 | Array(Object) | 该维度的分数区间评语，无则返回空数组 |
-| indicator_setting.indicators[].indicator_comments[].start_point | 否 | Number | 分数区间左端（含） |
-| indicator_setting.indicators[].indicator_comments[].end_point | 否 | Number | 分数区间右端（含） |
-| indicator_setting.indicators[].indicator_comments[].comment | 否 | String | 该区间展示的评语 |
-| indicator_setting.indicators[].indicator_comments[].retry | 否 | Boolean | 该区间是否允许再答一次 |
+| indicator_setting.indicators[].indicator_comments | 否 | Array([IntervalComment](#intervalcomment)) | 该维度的分数区间评语，无则返回空数组 |
 
 <!-- /openapi -->
 
@@ -124,6 +110,36 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/evaluation_setting
 | 402 | 当前套餐不支持 V1 API |
 | 403 | 无权限（如 OAuth scope 不足） |
 | 404 | 表单不存在或无权访问 |
+
+<!-- /openapi -->
+
+## 数据类型
+
+<!-- openapi:types -->
+
+### EvaluationComment
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| start_point | 否 | Number | 分数区间左端（含） |
+| end_point | 否 | Number | 分数区间右端（含） |
+| comment | 否 | String | 评语内容（富文本） |
+| retry | 否 | Boolean | 是否允许再答一次 |
+| id | 否 | String | 按条件编写的评语 id，更新时须原样传回 |
+| conditions | 否 | Array(Object) | 按条件编写的评语的判定条件 |
+| conditions[].trigger | 否 | String | 条件字段的 `api_code` |
+| conditions[].operator | 否 | String | 比较运算符 |
+| conditions[].value | 否 | Any | 条件值 |
+| conditions[].group_index | 否 | Integer | 条件分组序号 |
+
+### IntervalComment
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| start_point | 否 | Number | 分数区间左端（含） |
+| end_point | 否 | Number | 分数区间右端（含） |
+| comment | 否 | String | 该区间展示的评语 |
+| retry | 否 | Boolean | 该区间是否允许再答一次 |
 
 <!-- /openapi -->
 

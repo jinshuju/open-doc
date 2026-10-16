@@ -82,14 +82,7 @@ GET https://jinshuju.net/api/v1/billing_account/users?limit=20
 | ------ | ------ | ------ | ------ |
 | total | 是 | Integer | 当前账户内成员总数 |
 | count | 是 | Integer | 本次返回的成员数量 |
-| data | 是 | Array(Object) | 成员信息数组 |
-| data[].id | 是 | String | 成员（用户）ID |
-| data[].name | 是 | String / null | 成员显示名 |
-| data[].email | 是 | String / null | 邮箱 |
-| data[].mobile | 是 | String / null | 手机号（可能为空） |
-| data[].role | 是 | String | 角色（`owner` / `admin` / `worker` / `outworker`） |
-| data[].status | 是 | String | 状态（`active` / `disabled`） |
-| data[].created_at | 是 | DateTime | 成员加入时间（UTC） |
+| data | 是 | Array([BillingAccountUser](#billingaccountuser)) | 成员信息数组 |
 
 <!-- /openapi -->
 
@@ -103,6 +96,24 @@ GET https://jinshuju.net/api/v1/billing_account/users?limit=20
 | 401 | 未认证 |
 | 402 | 当前套餐不支持 V1 API |
 | 403 | 无权限（如 OAuth scope 不足） |
+
+<!-- /openapi -->
+
+## 数据类型
+
+<!-- openapi:types -->
+
+### BillingAccountUser
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| id | 是 | String | 成员（用户）ID |
+| name | 是 | String / null | 成员显示名 |
+| email | 是 | String / null | 邮箱 |
+| mobile | 是 | String / null | 手机号（可能为空） |
+| role | 是 | String | 角色（`owner` / `admin` / `worker` / `outworker`） |
+| status | 是 | String | 状态（`active` / `disabled`） |
+| created_at | 是 | DateTime | 成员加入时间（UTC） |
 
 <!-- /openapi -->
 

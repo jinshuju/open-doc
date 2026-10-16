@@ -72,10 +72,7 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/cooperators
 | 参数名称 | 是否必须 | 类型 | 说明 |
 | ------ | ------ | ------ | ------ |
 | count | 是 | Integer | 本次返回的协作者数量 |
-| data | 是 | Array(Object) | 协作者数组 |
-| data[].user_id | 是 | String | 用户 id |
-| data[].name | 是 | String | 用户展示名 |
-| data[].role | 是 | String / null | 该用户在此表单上的角色名称，例如「表单管理员」「数据维护者」「数据查看者」。角色记录异常时可能为 `null` |
+| data | 是 | Array([Cooperator](#cooperator)) | 协作者数组 |
 
 <!-- /openapi -->
 
@@ -90,6 +87,20 @@ GET https://jinshuju.net/api/v1/forms/FORM_TOKEN/cooperators
 | 402 | 当前套餐不支持 V1 API |
 | 403 | 无权限（如 OAuth scope 不足） |
 | 404 | 表单不存在或无权访问 |
+
+<!-- /openapi -->
+
+## 数据类型
+
+<!-- openapi:types -->
+
+### Cooperator
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| user_id | 是 | String | 用户 id |
+| name | 是 | String | 用户展示名 |
+| role | 是 | String / null | 该用户在此表单上的角色名称，例如「表单管理员」「数据维护者」「数据查看者」。角色记录异常时可能为 `null` |
 
 <!-- /openapi -->
 

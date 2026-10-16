@@ -57,21 +57,8 @@ PATCH https://jinshuju.net/api/v1/opensearch/queries/QUERY_TOKEN
 | name | 否 | String | 查询页标题 |
 | description | 否 | String | 查询页描述文案 |
 | enabled | 否 | Boolean | `false` 停用查询页，`true` 重新启用 |
-| search_field_rules | 否 | Array(Object) | 查询条件组，**REPLACE 语义**；`api_code` 必须来自[可用字段接口](/api_v1/endpoints/get_opensearch_query_suggestions) |
-| search_field_rules[].operand | 否 | String | 组内多个查询字段的关系：`and` = 全部匹配；`or` = 任一匹配。默认 `and` |
-| search_field_rules[].search_field_settings | 是 | Array(Object) | 访问者需要填写的查询字段，不能为空 |
-| search_field_rules[].search_field_settings[].field_api_code | 是 | String | 查询字段的 `api_code`，须在[可用字段](/api_v1/endpoints/get_opensearch_query_suggestions)的 `search_fields` 中 |
-| search_field_rules[].search_field_settings[].field_label | 否 | String / null | 展示给访问者的自定义标签；为空时用字段标题 |
-| search_field_rules[].search_field_settings[].fuzzy | 否 | Boolean | `true` = 包含匹配；`false` = 精确匹配。默认 `false` |
-| search_field_rules[].search_field_settings[].sms_verification | 否 | Boolean | 查询前是否要求短信验证（仅手机号字段生效），默认 `false` |
-| display_field_rules | 否 | Array(Object) | 展示字段，**REPLACE 语义**，不能为空 |
-| display_field_rules[].field_api_code | 是 | String | 展示字段的 `api_code`，须在[可用字段](/api_v1/endpoints/get_opensearch_query_suggestions)的 `display_fields` 中 |
-| display_field_rules[].field_label | 否 | String / null | 展示给访问者的自定义标签；为空时用字段标题 |
-| display_field_rules[].editable | 否 | Boolean | 是否允许访问者在结果页编辑该字段值，默认 `false` |
-| display_field_rules[].protected | 否 | Boolean | 是否对值做隐私脱敏，默认 `false`；仅支持脱敏的字段生效 |
-| display_field_rules[].highlight | 否 | Object / null | 高亮设置；`null` 表示不高亮 |
-| display_field_rules[].highlight.color | 否 | String / null | 高亮颜色（CSS 颜色值） |
-| display_field_rules[].highlight.position | 否 | Integer | 多个高亮字段间的排序，越小越靠前，默认 `999` |
+| search_field_rules | 否 | Array([OpensearchSearchFieldRule](#opensearchsearchfieldrule)) | 查询条件组，**REPLACE 语义**；`api_code` 必须来自[可用字段接口](/api_v1/endpoints/get_opensearch_query_suggestions) |
+| display_field_rules | 否 | Array([OpensearchDisplayFieldRule](#opensearchdisplayfieldrule)) | 展示字段，**REPLACE 语义**，不能为空 |
 | search_button | 否 | Object | 查询按钮外观，**REPLACE 语义** |
 | search_button.text | 否 | String | 按钮文字 |
 | search_button.color | 否 | String | 按钮颜色 |
@@ -117,11 +104,7 @@ PATCH https://jinshuju.net/api/v1/opensearch/queries/QUERY_TOKEN
 | status | 是 | String | 查询页可用状态：`active` = 正常；`entries_count_limited` = 表单数据量超出套餐的对外查询上限，访问者会看到不可用提示；`form_not_found` = 来源表单已删除。**与 `enabled` 无关**，停用的查询 `status` 仍可能是 `active` |
 | search_field_rules | 是 | Array(Object) | 查询条件组，通常只有一组 |
 | search_field_rules[].operand | 是 | String | 组内多个查询字段的关系：`and` = 全部匹配；`or` = 任一匹配 |
-| search_field_rules[].search_field_settings | 是 | Array(Object) | 访问者需要填写的查询字段 |
-| search_field_rules[].search_field_settings[].field_api_code | 是 | String | 查询字段的 `api_code` |
-| search_field_rules[].search_field_settings[].field_label | 否 | String / null | 展示给访问者的自定义标签；未设置为 `null` |
-| search_field_rules[].search_field_settings[].fuzzy | 否 | Boolean | `true` = 包含匹配；`false` = 精确匹配 |
-| search_field_rules[].search_field_settings[].sms_verification | 否 | Boolean | 查询前是否要求短信验证（仅手机号字段生效） |
+| search_field_rules[].search_field_settings | 是 | Array([OpensearchSearchFieldSetting](#opensearchsearchfieldsetting)) | 访问者需要填写的查询字段 |
 | display_field_rules | 是 | Array(Object) | 命中数据展示的字段，按展示顺序 |
 | display_field_rules[].field_api_code | 是 | String | 展示字段的 `api_code` |
 | display_field_rules[].field_label | 是 | String / null | 自定义标签；未设置为 `null` |
@@ -162,6 +145,40 @@ PATCH https://jinshuju.net/api/v1/opensearch/queries/QUERY_TOKEN
 | 402 | 当前套餐不支持 V1 API |
 | 403 | 无权限（如 OAuth scope 不足） |
 | 404 | 对外查询不存在，或不是当前调用方创建的 |
+
+<!-- /openapi -->
+
+## 数据类型
+
+<!-- openapi:types -->
+
+### OpensearchSearchFieldRule
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| operand | 否 | String | 组内多个查询字段的关系：`and` = 全部匹配；`or` = 任一匹配。默认 `and` |
+| search_field_settings | 是 | Array([OpensearchSearchFieldSetting](#opensearchsearchfieldsetting)) | 访问者需要填写的查询字段，不能为空 |
+
+### OpensearchDisplayFieldRule
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| field_api_code | 是 | String | 展示字段的 `api_code`，须在[可用字段](/api_v1/endpoints/get_opensearch_query_suggestions)的 `display_fields` 中 |
+| field_label | 否 | String / null | 展示给访问者的自定义标签；为空时用字段标题 |
+| editable | 否 | Boolean | 是否允许访问者在结果页编辑该字段值，默认 `false` |
+| protected | 否 | Boolean | 是否对值做隐私脱敏，默认 `false`；仅支持脱敏的字段生效 |
+| highlight | 否 | Object / null | 高亮设置；`null` 表示不高亮 |
+| highlight.color | 否 | String / null | 高亮颜色（CSS 颜色值） |
+| highlight.position | 否 | Integer | 多个高亮字段间的排序，越小越靠前，默认 `999` |
+
+### OpensearchSearchFieldSetting
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| field_api_code | 是 | String | 查询字段的 `api_code`，须在[可用字段](/api_v1/endpoints/get_opensearch_query_suggestions)的 `search_fields` 中 |
+| field_label | 否 | String / null | 展示给访问者的自定义标签；未设置（`null`）时用字段标题 |
+| fuzzy | 否 | Boolean | `true` = 包含匹配；`false` = 精确匹配（默认） |
+| sms_verification | 否 | Boolean | 查询前是否要求短信验证（仅手机号字段生效），默认 `false` |
 
 <!-- /openapi -->
 

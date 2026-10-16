@@ -111,13 +111,7 @@ GET https://jinshuju.net/api/v1/billing_account
 | plan.expired | 是 | Boolean | 企业套餐是否已过期 |
 | usage | 是 | Object / null | 本月度用量信息；账户未生成本月用量记录时为 `null` |
 | usage.next_reset_date | 是 | String | 下次重置日（`YYYY-MM-DD`） |
-| usage.\* | 否 | Object | 各项额度数据（见下） |
-| usage.\*.unit | 是 | String | 计量单位：`item` / `mb` / `second` / `cent` |
-| usage.\*.unlimited | 否 | Boolean | 额度不限时为 `true`，此时不返回额度与余额 |
-| usage.\*.total_quota | 否 | Integer | 本计费周期内的总额度 |
-| usage.\*.total_balance | 否 | Integer | 当前剩余总额度 |
-| usage.\*.month_balance | 否 | Integer | 当前剩余月度额度 |
-| usage.\*.consumed_quota | 是 | Integer | 已消耗额度 |
+| usage.\* | 否 | [BillingAccountUsageItem](#billingaccountusageitem) | 各项额度数据（见下） |
 | feature_trial | 是 | Object | 特性试用状态 |
 | feature_trial.in_use | 是 | Boolean | 是否在试用中 |
 | feature_trial.expired | 是 | Boolean | 试用是否已过期 |
@@ -149,6 +143,23 @@ GET https://jinshuju.net/api/v1/billing_account
 | 401 | 未认证 |
 | 402 | 当前套餐不支持 V1 API |
 | 403 | 无权限（如 OAuth scope 不足） |
+
+<!-- /openapi -->
+
+## 数据类型
+
+<!-- openapi:types -->
+
+### BillingAccountUsageItem
+
+| 参数名称 | 是否必须 | 类型 | 说明 |
+| ------ | ------ | ------ | ------ |
+| unit | 是 | String | 计量单位：`item` / `mb` / `second` / `cent` |
+| unlimited | 否 | Boolean | 额度不限时为 `true`，此时不返回额度与余额 |
+| total_quota | 否 | Integer | 本计费周期内的总额度 |
+| total_balance | 否 | Integer | 当前剩余总额度 |
+| month_balance | 否 | Integer | 当前剩余月度额度 |
+| consumed_quota | 是 | Integer | 已消耗额度 |
 
 <!-- /openapi -->
 
